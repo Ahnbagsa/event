@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { findBlanks, findBlanksInEvent, countBlanks } from './blanks';
+import {
+  findBlanks,
+  findBlanksInEvent,
+  countBlanks,
+  hasMalformedMarker,
+  findMalformedInEvent,
+} from './blanks';
 import { createEventFromTemplate } from './templates';
 
 const init = {
@@ -56,5 +62,45 @@ describe('findBlanksInEvent', () => {
   it('빈칸이 하나도 없으면 0이다', () => {
     const event = createEventFromTemplate('semester-opening', init);
     expect(countBlanks(event)).toBe(0);
+  });
+});
+
+describe('hasMalformedMarker', () => {
+  it('온전한 마커만 있으면 망가진 것으로 보지 않는다', () => {
+    expect(hasMalformedMarker('{{교장 성함}} 말씀')).toBe(false);
+  });
+
+  it('닫는 중괄호가 하나면 잡아낸다', () => {
+    expect(hasMalformedMarker('{{교장 성함}')).toBe(true);
+  });
+
+  it('여는 중괄호가 하나여도 잡아낸다', () => {
+    expect(hasMalformedMarker('{교장 성함}}')).toBe(true);
+  });
+
+  it('전각 괄호도 잡아낸다', () => {
+    expect(hasMalformedMarker('｛｛교장 성함｝｝')).toBe(true);
+  });
+
+  it('중괄호가 없으면 통과한다', () => {
+    expect(hasMalformedMarker('평범한 문장입니다.')).toBe(false);
+  });
+});
+
+describe('findMalformedInEvent', () => {
+  it('망가진 마커가 있는 순서만 순서명과 함께 돌려준다', () => {
+    const event = createEventFromTemplate('semester-opening', init);
+    event.segments[0].script = '{{학교명}} 개학식을 시작하겠습니다.';
+    event.segments[1].script = '{{교장 성함} 선생님을 모십니다.';
+
+    const hits = findMalformedInEvent(event);
+    expect(hits).toHaveLength(1);
+    expect(hits[0].segmentName).toBe('국기에 대한 경례');
+  });
+
+  it('망가진 곳이 없으면 빈 배열이다', () => {
+    const event = createEventFromTemplate('semester-opening', init);
+    event.segments[0].script = '{{학교명}} 개학식을 시작하겠습니다.';
+    expect(findMalformedInEvent(event)).toEqual([]);
   });
 });
