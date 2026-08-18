@@ -143,11 +143,13 @@ export default defineConfig({
     "skipLibCheck": true,
     "isolatedModules": true,
     "resolveJsonModule": true,
-    "types": ["vitest/globals", "@testing-library/jest-dom"]
+    "types": ["vite/client", "vitest/globals", "@testing-library/jest-dom"]
   },
   "include": ["src", "vitest.setup.ts", "vite.config.ts"]
 }
 ```
+
+`"types"`를 명시하면 TypeScript의 기본 타입 자동 포함이 꺼진다. `"vite/client"`가 첫 항목으로 반드시 있어야 `import './index.css'` 같은 부수효과 import가 타입 검사를 통과한다. 빼면 `npm run build`가 TS2882로 실패한다.
 
 `vitest.setup.ts`:
 
@@ -374,7 +376,11 @@ describe('formatDuration', () => {
   });
 
   it('소수점은 올림한다', () => {
-    expect(formatDuration(59.2)).toBe('60초');
+    expect(formatDuration(44.2)).toBe('45초');
+  });
+
+  it('올림한 값이 60초가 되면 1분으로 표시한다', () => {
+    expect(formatDuration(59.2)).toBe('1분');
   });
 });
 ```
@@ -412,7 +418,7 @@ export function formatDuration(seconds: number): string {
 - [ ] **Step 9: 테스트 통과 확인 + 빌드 확인**
 
 Run: `npm test`
-Expected: PASS (7 tests)
+Expected: PASS (8 tests)
 
 Run: `npm run build`
 Expected: 오류 없이 `dist/` 생성
@@ -3161,7 +3167,7 @@ export function usePlayer(asset: AudioAsset | null) {
 - [ ] **Step 4: 테스트 통과 확인**
 
 Run: `npm test -- AudioController`
-Expected: PASS (7 tests)
+Expected: PASS (8 tests)
 
 - [ ] **Step 5: 전체 테스트와 빌드 확인**
 
