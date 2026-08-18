@@ -1301,7 +1301,7 @@ export default function AudioDrawer() {
                   <span className="text-gray-500">없음</span>
                 ) : (
                   <span>
-                    {asset.fileName} · {formatDuration(asset.durationSec)}
+                    {asset.fileName} · <span>{formatDuration(asset.durationSec)}</span>
                   </span>
                 )}
               </div>
@@ -1313,6 +1313,7 @@ export default function AudioDrawer() {
                   type="file"
                   accept="audio/*"
                   className="text-sm"
+                  disabled={busyRole !== null}
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file !== undefined) void handleFile(role, file);
