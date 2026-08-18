@@ -68,6 +68,12 @@ describe('removeSegment', () => {
 
   it('없는 id면 그대로 둔다', () => {
     expect(removeSegment(base, '없음')).toHaveLength(3);
+    expect(removeSegment(base, '없음').map((s) => s.id)).toEqual(['a', 'b', 'c']);
+  });
+
+  it('원본 배열을 바꾸지 않는다', () => {
+    removeSegment(base, 'b');
+    expect(base.map((s) => s.id)).toEqual(['a', 'b', 'c']);
   });
 });
 
@@ -82,6 +88,12 @@ describe('updateSegment', () => {
     const result = updateSegment(base, 'b', { id: '해킹', order: 99 } as Partial<Segment>);
     expect(result[1].id).toBe('b');
     expect(result[1].order).toBe(1);
+  });
+
+  it('원본 배열과 원본 순서를 바꾸지 않는다', () => {
+    updateSegment(base, 'b', { script: '새 멘트' });
+    expect(base.map((s) => s.id)).toEqual(['a', 'b', 'c']);
+    expect(base[1].script).toBe('');
   });
 });
 
@@ -111,5 +123,16 @@ describe('insertSegment', () => {
 
   it('맨 끝에 넣을 수 있다', () => {
     expect(insertSegment(base, seed, 3).map((s) => s.name).at(-1)).toBe('시상');
+  });
+
+  it('넣은 뒤 order를 0부터 다시 매긴다', () => {
+    const result = insertSegment(base, seed, 1);
+    expect(result.map((s) => s.order)).toEqual([0, 1, 2, 3]);
+  });
+
+  it('원본 배열을 바꾸지 않는다', () => {
+    insertSegment(base, seed, 1);
+    expect(base).toHaveLength(3);
+    expect(base.map((s) => s.id)).toEqual(['a', 'b', 'c']);
   });
 });
