@@ -4,6 +4,7 @@ import {
   STANDARD_EXTRA_SEEDS,
   getTemplate,
   createEventFromTemplate,
+  blankSeed,
 } from './index';
 
 const init = {
@@ -117,5 +118,11 @@ describe('STANDARD_EXTRA_SEEDS', () => {
   it('이름이 겹치지 않는다', () => {
     const names = STANDARD_EXTRA_SEEDS.map((seed) => seed.name);
     expect(new Set(names).size).toBe(names.length);
+  });
+
+  it('직접 입력용 빈 순서는 추가 목록에 섞이지 않는다', () => {
+    expect(STANDARD_EXTRA_SEEDS.map((seed) => seed.name)).not.toContain('새로 만들기');
+    expect(blankSeed().name).toBe('새 순서');
+    expect(blankSeed().kind).toBe('speech');
   });
 });

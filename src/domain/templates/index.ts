@@ -31,6 +31,7 @@ export const TEMPLATES: CeremonyTemplate[] = [
 ];
 
 export const STANDARD_EXTRA_SEEDS = standardExtraSeeds;
+export { blankSeed } from './semesterOpening';
 
 export function getTemplate(id: string): CeremonyTemplate | null {
   return TEMPLATES.find((template) => template.id === id) ?? null;

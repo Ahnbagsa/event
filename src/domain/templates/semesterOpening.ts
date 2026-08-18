@@ -54,5 +54,11 @@ export const standardExtraSeeds: SegmentSeed[] = [
   seed({ name: '학생 대표 인사', kind: 'address', manualDurationSec: 120 }),
   seed({ name: '입장', kind: 'audio', audioRole: 'entrance' }),
   seed({ name: '퇴장', kind: 'audio', audioRole: 'exit', fadeOutSec: 3 }),
-  seed({ name: '새로 만들기', kind: 'speech' }),
 ];
+
+// 팔레트에서 "직접 입력"을 골랐을 때 넣는 빈 순서.
+// standardExtraSeeds에 넣지 않는다 — 그것은 실제 식순 이름들의 목록이고,
+// 여기에 UI 동작을 섞으면 "새로 만들기"라는 이름의 순서가 식순에 들어간다.
+export function blankSeed(): SegmentSeed {
+  return seed({ name: '새 순서', kind: 'speech' });
+}
