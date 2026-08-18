@@ -2245,7 +2245,7 @@ export function insertSegment(
 - [ ] **Step 4: 테스트 통과 확인**
 
 Run: `npm test -- segmentOps`
-Expected: PASS (14 tests)
+Expected: PASS (15 tests)
 
 - [ ] **Step 5: 커밋**
 
@@ -2925,7 +2925,7 @@ export function runReducer(state: RunModel, action: RunAction): RunModel {
 - [ ] **Step 4: 테스트 통과 확인**
 
 Run: `npm test -- runMachine`
-Expected: PASS (14 tests)
+Expected: PASS (15 tests)
 
 - [ ] **Step 5: 커밋**
 
