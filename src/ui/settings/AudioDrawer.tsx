@@ -84,6 +84,7 @@ export default function AudioDrawer() {
                   type="file"
                   accept="audio/*"
                   className="text-sm"
+                  disabled={busyRole !== null}
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file !== undefined) void handleFile(role, file);

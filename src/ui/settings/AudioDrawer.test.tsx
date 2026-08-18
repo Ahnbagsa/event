@@ -5,8 +5,10 @@ import { clearDb } from '../../db/testUtils';
 import { getAudioByRole } from '../../db/audioRepo';
 import AudioDrawer from './AudioDrawer';
 
+const readDurationMock = vi.hoisted(() => vi.fn(() => Promise.resolve(222)));
+
 vi.mock('../../audio/readAudioDuration', () => ({
-  readAudioDuration: () => Promise.resolve(222),
+  readAudioDuration: readDurationMock,
 }));
 
 describe('AudioDrawer', () => {
@@ -42,5 +44,23 @@ describe('AudioDrawer', () => {
     });
 
     expect(await screen.findByText('3분 42초')).toBeInTheDocument();
+  });
+
+  it('파일을 읽는 동안에는 다른 파일을 고를 수 없다', async () => {
+    let release: (seconds: number) => void = () => undefined;
+    readDurationMock.mockImplementationOnce(
+      () => new Promise<number>((resolve) => { release = resolve; }),
+    );
+
+    const user = userEvent.setup();
+    render(<AudioDrawer />);
+
+    const input = await screen.findByTestId('file-anthem');
+    await user.upload(input, new File(['음원'], '애국가.mp3', { type: 'audio/mpeg' }));
+
+    expect(await screen.findByTestId('file-schoolSong')).toBeDisabled();
+
+    release(222);
+    await waitFor(() => expect(screen.getByTestId('file-schoolSong')).toBeEnabled());
   });
 });
