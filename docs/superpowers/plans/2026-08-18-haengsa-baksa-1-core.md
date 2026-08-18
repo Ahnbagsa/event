@@ -1759,6 +1759,9 @@ git commit -m "feat: 개학식 표준 식순 템플릿과 행사 리포지토리
   - `type BlankHit = { segmentId: string; segmentName: string; labels: string[] }`
   - `findBlanksInEvent(event: EventCeremony): BlankHit[]`
   - `countBlanks(event: EventCeremony): number`
+  - `hasMalformedMarker(text: string): boolean`
+  - `type MalformedHit = { segmentId: string; segmentName: string }`
+  - `findMalformedInEvent(event: EventCeremony): MalformedHit[]`
 
 - [ ] **Step 1: 실패하는 테스트 작성**
 
@@ -2006,6 +2009,27 @@ export function findBlanksInEvent(event: EventCeremony): BlankHit[] {
 
 export function countBlanks(event: EventCeremony): number {
   return findBlanksInEvent(event).reduce((sum, hit) => sum + hit.labels.length, 0);
+}
+
+// 온전한 {{빈칸}}을 걷어낸 뒤에도 중괄호가 남아 있으면 마커가 망가진 것이다.
+// 예: AI 응답이 잘려 "{{교장 성함}"으로 끝났거나, 편집 중 중괄호 하나를 지웠거나,
+// 모바일 자판이 전각 괄호(｛｝)를 넣은 경우. 이런 조각은 findBlanks가 못 잡으므로
+// 점검을 그대로 통과해 행사 대본에 그대로 찍힌다.
+const BRACE_LIKE = /[{}｛｝]/;
+
+export function hasMalformedMarker(text: string): boolean {
+  return BRACE_LIKE.test(text.replace(BLANK_PATTERN, ''));
+}
+
+export type MalformedHit = {
+  segmentId: string;
+  segmentName: string;
+};
+
+export function findMalformedInEvent(event: EventCeremony): MalformedHit[] {
+  return event.segments
+    .filter((segment) => hasMalformedMarker(segment.script))
+    .map((segment) => ({ segmentId: segment.id, segmentName: segment.name }));
 }
 ```
 
@@ -3304,7 +3328,12 @@ Expected: FAIL — 모듈을 찾을 수 없음
 `src/domain/preflight.ts`:
 
 ```ts
-import { findBlanksInEvent, type BlankHit } from './blanks';
+import {
+  findBlanksInEvent,
+  findMalformedInEvent,
+  type BlankHit,
+  type MalformedHit,
+} from './blanks';
 import type { AudioRole, EventCeremony } from '../types';
 
 export function requiredAudioRoles(event: EventCeremony): AudioRole[] {
@@ -3319,6 +3348,7 @@ export function requiredAudioRoles(event: EventCeremony): AudioRole[] {
 
 export type PreflightResult = {
   blanks: BlankHit[];
+  malformed: MalformedHit[];
   missingAudioRoles: AudioRole[];
   ok: boolean;
 };
@@ -3328,13 +3358,15 @@ export function checkReadiness(
   availableRoles: Set<AudioRole>,
 ): PreflightResult {
   const blanks = findBlanksInEvent(event);
+  const malformed = findMalformedInEvent(event);
   const missingAudioRoles = requiredAudioRoles(event).filter(
     (role) => !availableRoles.has(role),
   );
   return {
     blanks,
+    malformed,
     missingAudioRoles,
-    ok: blanks.length === 0 && missingAudioRoles.length === 0,
+    ok: blanks.length === 0 && malformed.length === 0 && missingAudioRoles.length === 0,
   };
 }
 ```
@@ -3569,6 +3601,29 @@ export default function PreflightPage() {
                 </li>
               ))}
             </ul>
+          )}
+        </CheckRow>
+
+        <CheckRow
+          testId="check-malformed"
+          ok={result.malformed.length === 0}
+          title={
+            result.malformed.length === 0
+              ? '망가진 빈칸 표시가 없습니다'
+              : '중괄호가 깨진 곳이 있습니다'
+          }
+        >
+          {result.malformed.length > 0 && (
+            <>
+              <p className="text-gray-600">
+                {'{{교장 성함}}'}처럼 짝이 맞아야 합니다. 한쪽이 빠지면 대본에 그대로 찍힙니다.
+              </p>
+              <ul className="list-disc pl-5">
+                {result.malformed.map((hit) => (
+                  <li key={hit.segmentId}>{hit.segmentName}</li>
+                ))}
+              </ul>
+            </>
           )}
         </CheckRow>
 
