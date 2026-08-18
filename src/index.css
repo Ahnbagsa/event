@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  font-family: system-ui, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  word-break: keep-all;
+}
