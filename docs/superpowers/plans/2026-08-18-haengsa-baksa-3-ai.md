@@ -2015,12 +2015,12 @@ describe('applyScripts', () => {
     const updated = applyScripts(segments, {
       segments: [
         { id: segments[0].id, script: '개학식을 시작하겠습니다.' },
-        { id: segments[7].id, script: '이상으로 마치겠습니다.' },
+        { id: segments[6].id, script: '이상으로 마치겠습니다.' },
       ],
     });
 
     expect(updated[0].script).toBe('개학식을 시작하겠습니다.');
-    expect(updated[7].script).toBe('이상으로 마치겠습니다.');
+    expect(updated[6].script).toBe('이상으로 마치겠습니다.');
   });
 
   it('응답에 없는 순서는 원래 멘트를 지킨다', () => {

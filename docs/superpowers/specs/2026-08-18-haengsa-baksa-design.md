@@ -613,12 +613,27 @@ AI를 뒤에 두는 이유: 개학식이 임박한 상황에서 AI부터 만들�
 2-2  애국가 제창               audio    role=anthem      ※ 절 수 선택
 2-3  순국선열에 대한 묵념      timer    role=silence     ※ 30초 / 1분
 3    학교장 말씀               address  기본 180초
-4    전달 사항                 address  기본 120초
-5    교가 제창                 audio    role=schoolSong
-6    폐식사                    speech
+4    교가 제창                 audio    role=schoolSong
+5    폐식사                    speech
 ```
 
 약식 국민의례(국기에 대한 경례만 수행)를 옵션으로 제공한다.
+
+### 기본 식순에 넣지 않는 표준 순서
+
+학교와 행사에 따라 넣기도 하고 빼기도 하는 순서들이다. 기본 식순에서 제외하고, 편집기의 `＋ 순서 추가`에서 한 번에 넣을 수 있게 한다.
+
+```
+전달 사항           address  기본 120초   ※ 교무·생활·보건
+내빈 소개           speech
+축사                address  기본 180초
+시상                audio    role=award
+학생 대표 인사      address  기본 120초
+입장                audio    role=entrance
+퇴장                audio    role=exit    ※ 페이드아웃 3초
+```
+
+`전달 사항`을 기본에서 뺀 근거: 사용자(교무부장) 확인 결과 학교장 말씀은 항상 있으나 전달 사항은 그때그때 다르다.
 
 ## 15. 위험 요소
 

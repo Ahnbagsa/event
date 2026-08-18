@@ -1357,7 +1357,7 @@ git commit -m "feat: 역할별 음원 서랍 화면"
 - Produces:
   - `type SegmentSeed = Omit<Segment, 'id' | 'order'>`
   - `type CeremonyTemplate = { id: string; label: string; seeds: SegmentSeed[] }`
-  - `TEMPLATES: CeremonyTemplate[]`, `getTemplate(id: string): CeremonyTemplate | null`
+  - `TEMPLATES: CeremonyTemplate[]`, `STANDARD_EXTRA_SEEDS: SegmentSeed[]`, `getTemplate(id: string): CeremonyTemplate | null`
   - `createEventFromTemplate(templateId: string, init: EventInit): EventCeremony`
   - `type EventInit = { title: string; date: string; place: string; mode: EventMode; audience: EventAudience; tone: EventTone; targetMinutes: number | null }`
   - `listEvents(): Promise<EventCeremony[]>` (최근 수정 순), `getEvent(id)`, `putEvent(e)`, `deleteEvent(id)`
@@ -1368,7 +1368,12 @@ git commit -m "feat: 역할별 음원 서랍 화면"
 
 ```ts
 import { describe, it, expect } from 'vitest';
-import { TEMPLATES, getTemplate, createEventFromTemplate } from './index';
+import {
+  TEMPLATES,
+  STANDARD_EXTRA_SEEDS,
+  getTemplate,
+  createEventFromTemplate,
+} from './index';
 
 const init = {
   title: '2학기 개학식',
@@ -1396,7 +1401,7 @@ describe('템플릿', () => {
 });
 
 describe('createEventFromTemplate', () => {
-  it('개학식 표준 8개 순서를 만든다', () => {
+  it('개학식 표준 7개 순서를 만든다', () => {
     const event = createEventFromTemplate('semester-opening', init);
     expect(event.segments.map((s) => s.name)).toEqual([
       '개식사',
@@ -1404,10 +1409,14 @@ describe('createEventFromTemplate', () => {
       '애국가 제창',
       '순국선열 및 호국영령에 대한 묵념',
       '학교장 말씀',
-      '전달 사항',
       '교가 제창',
       '폐식사',
     ]);
+  });
+
+  it('전달 사항은 기본 식순에 넣지 않는다', () => {
+    const event = createEventFromTemplate('semester-opening', init);
+    expect(event.segments.map((s) => s.name)).not.toContain('전달 사항');
   });
 
   it('국민의례 세 순서에 같은 묶음 이름을 붙인다', () => {
@@ -1432,8 +1441,8 @@ describe('createEventFromTemplate', () => {
 
   it('order를 0부터 차례로 매기고 id가 겹치지 않는다', () => {
     const event = createEventFromTemplate('semester-opening', init);
-    expect(event.segments.map((s) => s.order)).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
-    expect(new Set(event.segments.map((s) => s.id)).size).toBe(8);
+    expect(event.segments.map((s) => s.order)).toEqual([0, 1, 2, 3, 4, 5, 6]);
+    expect(new Set(event.segments.map((s) => s.id)).size).toBe(7);
   });
 
   it('행사 정보를 그대로 담는다', () => {
@@ -1452,6 +1461,31 @@ describe('createEventFromTemplate', () => {
     expect(() => createEventFromTemplate('없는템플릿', init)).toThrow(
       '알 수 없는 행사 템플릿입니다.',
     );
+  });
+});
+
+describe('STANDARD_EXTRA_SEEDS', () => {
+  it('전달 사항을 나중에 넣을 수 있게 제공한다', () => {
+    const names = STANDARD_EXTRA_SEEDS.map((seed) => seed.name);
+    expect(names).toContain('전달 사항');
+  });
+
+  it('전달 사항은 말씀 종류이고 기본 2분이다', () => {
+    const found = STANDARD_EXTRA_SEEDS.find((seed) => seed.name === '전달 사항');
+    expect(found?.kind).toBe('address');
+    expect(found?.manualDurationSec).toBe(120);
+  });
+
+  it('자주 쓰는 순서를 갖추고 있다', () => {
+    const names = STANDARD_EXTRA_SEEDS.map((seed) => seed.name);
+    expect(names).toContain('시상');
+    expect(names).toContain('내빈 소개');
+    expect(names).toContain('입장');
+  });
+
+  it('이름이 겹치지 않는다', () => {
+    const names = STANDARD_EXTRA_SEEDS.map((seed) => seed.name);
+    expect(new Set(names).size).toBe(names.length);
   });
 });
 ```
@@ -1558,17 +1592,31 @@ export const semesterOpeningSeeds: SegmentSeed[] = [
     timerSec: 60,
   }),
   seed({ name: '학교장 말씀', kind: 'address', manualDurationSec: 180 }),
-  seed({ name: '전달 사항', kind: 'address', manualDurationSec: 120, note: '교무·생활·보건' }),
   seed({ name: '교가 제창', kind: 'audio', audioRole: 'schoolSong' }),
   seed({ name: '폐식사', kind: 'speech' }),
 ];
+
+// 기본 식순에는 없지만 학교 사정에 따라 넣는 순서들.
+// 편집기의 "순서 추가"에서 고를 수 있다.
+export const standardExtraSeeds: SegmentSeed[] = [
+  seed({ name: '전달 사항', kind: 'address', manualDurationSec: 120, note: '교무·생활·보건' }),
+  seed({ name: '내빈 소개', kind: 'speech' }),
+  seed({ name: '축사', kind: 'address', manualDurationSec: 180 }),
+  seed({ name: '시상', kind: 'audio', audioRole: 'award' }),
+  seed({ name: '학생 대표 인사', kind: 'address', manualDurationSec: 120 }),
+  seed({ name: '입장', kind: 'audio', audioRole: 'entrance' }),
+  seed({ name: '퇴장', kind: 'audio', audioRole: 'exit', fadeOutSec: 3 }),
+  seed({ name: '새로 만들기', kind: 'speech' }),
+];
 ```
+
+`전달 사항`은 학교마다 넣기도 하고 빼기도 하므로 **기본 식순에서 제외**하고 여기에 두었다. 편집기에서 한 번 눌러 넣을 수 있다.
 
 `src/domain/templates/index.ts`:
 
 ```ts
 import { newId } from '../../lib/id';
-import { semesterOpeningSeeds, type SegmentSeed } from './semesterOpening';
+import { semesterOpeningSeeds, standardExtraSeeds, type SegmentSeed } from './semesterOpening';
 import type {
   EventAudience,
   EventCeremony,
@@ -1598,6 +1646,8 @@ export const TEMPLATES: CeremonyTemplate[] = [
   { id: 'semester-opening', label: '개학식 · 방학식', seeds: semesterOpeningSeeds },
   { id: 'blank', label: '빈 행사 (직접 구성)', seeds: [] },
 ];
+
+export const STANDARD_EXTRA_SEEDS = standardExtraSeeds;
 
 export function getTemplate(id: string): CeremonyTemplate | null {
   return TEMPLATES.find((template) => template.id === id) ?? null;
@@ -1662,7 +1712,7 @@ export async function deleteEvent(id: string): Promise<void> {
 - [ ] **Step 5: 테스트 통과 확인**
 
 Run: `npm test -- templates eventRepo`
-Expected: PASS (13 tests)
+Expected: PASS (18 tests)
 
 - [ ] **Step 6: 커밋**
 
@@ -2171,7 +2221,7 @@ git commit -m "feat: 순서 이동·삭제·추가 편집 연산"
 - Test: `src/ui/editor/EditorPage.test.tsx`
 
 **Interfaces:**
-- Consumes: `getEvent`·`putEvent` (Task 6), `segmentOps` (Task 8), `estimateTotalSeconds` (Task 7), `countBlanks`·`findBlanks` (Task 7), `listAudio` (Task 4), `roleLabel`·`STANDARD_ROLES` (Task 5), `formatDuration` (Task 1)
+- Consumes: `getEvent`·`putEvent` (Task 6), `segmentOps`(insertSegment 포함) (Task 8), `STANDARD_EXTRA_SEEDS` (Task 6), `estimateTotalSeconds` (Task 7), `countBlanks`·`findBlanks` (Task 7), `listAudio` (Task 4), `roleLabel`·`STANDARD_ROLES` (Task 5), `formatDuration` (Task 1)
 - Produces:
   - 라우트 `#/event/:eventId/edit`
   - `<EditorPage />`, `<SegmentCard />`, `<ScriptField />`
@@ -2279,6 +2329,46 @@ describe('EditorPage', () => {
     await user.type(within(card).getByLabelText('사회자 멘트'), '{{}{{}학교명}} 개학식');
 
     expect(await screen.findByTestId('blank-warning')).toHaveTextContent('채워야 할 빈칸 1곳');
+  });
+
+  it('표준 순서를 골라 맨 끝에 넣을 수 있다', async () => {
+    const user = userEvent.setup();
+    await renderEditor();
+
+    await user.click(await screen.findByRole('button', { name: '＋ 순서 추가' }));
+    await user.click(await screen.findByRole('button', { name: '전달 사항' }));
+
+    const names = screen.getAllByTestId('segment-name').map((el) => el.textContent);
+    expect(names).toHaveLength(8);
+    expect(names.at(-1)).toBe('전달 사항');
+  });
+
+  it('추가한 전달 사항은 말씀 종류로 들어간다', async () => {
+    const user = userEvent.setup();
+    const event = await renderEditor();
+
+    await user.click(await screen.findByRole('button', { name: '＋ 순서 추가' }));
+    await user.click(await screen.findByRole('button', { name: '전달 사항' }));
+    await user.click(screen.getByRole('button', { name: '저장' }));
+
+    await waitFor(async () => {
+      const saved = await getEvent(event.id);
+      const added = saved?.segments.at(-1);
+      expect(added?.kind).toBe('address');
+      expect(added?.manualDurationSec).toBe(120);
+    });
+  });
+
+  it('순서 추가 목록을 다시 눌러 닫을 수 있다', async () => {
+    const user = userEvent.setup();
+    await renderEditor();
+
+    const toggle = await screen.findByRole('button', { name: '＋ 순서 추가' });
+    await user.click(toggle);
+    expect(screen.getByRole('button', { name: '전달 사항' })).toBeInTheDocument();
+
+    await user.click(toggle);
+    expect(screen.queryByRole('button', { name: '전달 사항' })).not.toBeInTheDocument();
   });
 });
 ```
@@ -2475,7 +2565,8 @@ import { Link, useParams } from 'react-router-dom';
 import SegmentCard from './SegmentCard';
 import { getEvent, putEvent } from '../../db/eventRepo';
 import { listAudio } from '../../db/audioRepo';
-import { moveSegment, removeSegment, updateSegment } from '../../domain/segmentOps';
+import { insertSegment, moveSegment, removeSegment, updateSegment } from '../../domain/segmentOps';
+import { STANDARD_EXTRA_SEEDS } from '../../domain/templates';
 import { estimateTotalSeconds } from '../../domain/timeEstimator';
 import { countBlanks } from '../../domain/blanks';
 import { formatDuration } from '../../lib/format';
@@ -2486,6 +2577,7 @@ export default function EditorPage() {
   const [event, setEvent] = useState<EventCeremony | null>(null);
   const [durations, setDurations] = useState<Map<AudioRole, number>>(new Map());
   const [saved, setSaved] = useState(false);
+  const [showPalette, setShowPalette] = useState(false);
 
   useEffect(() => {
     void getEvent(eventId).then(setEvent);
@@ -2556,10 +2648,37 @@ export default function EditorPage() {
           />
         ))}
       </ul>
+
+      <div className="px-3">
+        <button className="rounded border border-gray-400 px-3 py-2"
+                onClick={() => setShowPalette(!showPalette)}>
+          ＋ 순서 추가
+        </button>
+
+        {showPalette && (
+          <ul className="mt-2 flex flex-wrap gap-2">
+            {STANDARD_EXTRA_SEEDS.map((seed) => (
+              <li key={seed.name}>
+                <button
+                  className="rounded border border-blue-400 px-3 py-1 text-blue-700"
+                  onClick={() => {
+                    setSegments(insertSegment(event.segments, seed, event.segments.length));
+                    setShowPalette(false);
+                  }}
+                >
+                  {seed.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </main>
   );
 }
 ```
+
+`전달 사항`처럼 학교마다 다른 순서는 기본 식순에 없고 여기서 한 번에 넣는다. 넣은 뒤에는 ▲▼로 원하는 자리로 옮긴다.
 
 - [ ] **Step 6: 라우트 등록**
 
@@ -3724,7 +3843,7 @@ describe('RunPage', () => {
 
   it('진행 위치와 전체 순서 수를 보여준다', async () => {
     await renderRun();
-    expect(await screen.findByTestId('position')).toHaveTextContent('1 / 8');
+    expect(await screen.findByTestId('position')).toHaveTextContent('1 / 7');
   });
 
   it('다음 순서를 미리 보여준다', async () => {
@@ -3737,7 +3856,7 @@ describe('RunPage', () => {
     await renderRun();
 
     await user.click(await screen.findByRole('button', { name: '다음' }));
-    expect(await screen.findByTestId('position')).toHaveTextContent('2 / 8');
+    expect(await screen.findByTestId('position')).toHaveTextContent('2 / 7');
   });
 
   it('첫 순서에서는 이전 버튼이 비활성이다', async () => {
@@ -3769,7 +3888,7 @@ describe('RunPage', () => {
     await user.click(await screen.findByRole('button', { name: '화면 잠금' }));
     await user.click(screen.getByRole('button', { name: '다음' }));
 
-    expect(await screen.findByTestId('position')).toHaveTextContent('1 / 8');
+    expect(await screen.findByTestId('position')).toHaveTextContent('1 / 7');
   });
 
   it('마지막 순서에서 다음을 누르면 종료 화면이 나온다', async () => {
@@ -3777,7 +3896,7 @@ describe('RunPage', () => {
     await renderRun();
 
     const next = await screen.findByRole('button', { name: '다음' });
-    for (let i = 0; i < 8; i += 1) await user.click(next);
+    for (let i = 0; i < 7; i += 1) await user.click(next);
 
     expect(await screen.findByText('행사가 끝났습니다')).toBeInTheDocument();
   });
@@ -4108,7 +4227,7 @@ describe('NewEventPage', () => {
       expect(events).toHaveLength(1);
       expect(events[0].title).toBe('2학기 개학식');
       expect(events[0].mode).toBe('broadcast');
-      expect(events[0].segments).toHaveLength(8);
+      expect(events[0].segments).toHaveLength(7);
     });
   });
 });
