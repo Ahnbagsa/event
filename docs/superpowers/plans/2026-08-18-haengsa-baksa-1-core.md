@@ -1618,8 +1618,14 @@ export const standardExtraSeeds: SegmentSeed[] = [
   seed({ name: '학생 대표 인사', kind: 'address', manualDurationSec: 120 }),
   seed({ name: '입장', kind: 'audio', audioRole: 'entrance' }),
   seed({ name: '퇴장', kind: 'audio', audioRole: 'exit', fadeOutSec: 3 }),
-  seed({ name: '새로 만들기', kind: 'speech' }),
 ];
+
+// 팔레트에서 "직접 입력"을 골랐을 때 넣는 빈 순서.
+// standardExtraSeeds에 넣지 않는다 — 그것은 실제 식순 이름들의 목록이고,
+// 여기에 UI 동작을 섞으면 "새로 만들기"라는 이름의 순서가 식순에 들어간다.
+export function blankSeed(): SegmentSeed {
+  return seed({ name: '새 순서', kind: 'speech' });
+}
 ```
 
 `전달 사항`은 학교마다 넣기도 하고 빼기도 하므로 **기본 식순에서 제외**하고 여기에 두었다. 편집기에서 한 번 눌러 넣을 수 있다.
@@ -1660,6 +1666,7 @@ export const TEMPLATES: CeremonyTemplate[] = [
 ];
 
 export const STANDARD_EXTRA_SEEDS = standardExtraSeeds;
+export { blankSeed } from './semesterOpening';
 
 export function getTemplate(id: string): CeremonyTemplate | null {
   return TEMPLATES.find((template) => template.id === id) ?? null;
@@ -2578,7 +2585,7 @@ import SegmentCard from './SegmentCard';
 import { getEvent, putEvent } from '../../db/eventRepo';
 import { listAudio } from '../../db/audioRepo';
 import { insertSegment, moveSegment, removeSegment, updateSegment } from '../../domain/segmentOps';
-import { STANDARD_EXTRA_SEEDS } from '../../domain/templates';
+import { STANDARD_EXTRA_SEEDS, blankSeed } from '../../domain/templates';
 import { estimateTotalSeconds } from '../../domain/timeEstimator';
 import { countBlanks } from '../../domain/blanks';
 import { formatDuration } from '../../lib/format';
@@ -2682,6 +2689,17 @@ export default function EditorPage() {
                 </button>
               </li>
             ))}
+            <li>
+              <button
+                className="rounded border border-gray-400 px-3 py-1"
+                onClick={() => {
+                  setSegments(insertSegment(event.segments, blankSeed(), event.segments.length));
+                  setShowPalette(false);
+                }}
+              >
+                직접 입력
+              </button>
+            </li>
           </ul>
         )}
       </div>
