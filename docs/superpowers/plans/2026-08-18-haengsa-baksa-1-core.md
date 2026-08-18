@@ -1724,7 +1724,7 @@ export async function deleteEvent(id: string): Promise<void> {
 - [ ] **Step 5: 테스트 통과 확인**
 
 Run: `npm test -- templates eventRepo`
-Expected: PASS (18 tests)
+Expected: PASS (20 tests)
 
 - [ ] **Step 6: 커밋**
 
