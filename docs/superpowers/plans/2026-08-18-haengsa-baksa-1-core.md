@@ -2012,7 +2012,7 @@ export function countBlanks(event: EventCeremony): number {
 - [ ] **Step 4: 테스트 통과 확인**
 
 Run: `npm test -- timeEstimator blanks`
-Expected: PASS (22 tests)
+Expected: PASS (21 tests)
 
 - [ ] **Step 5: 커밋**
 
