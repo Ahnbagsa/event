@@ -163,6 +163,7 @@ node_modules
 dist
 .DS_Store
 *.local
+.superpowers/
 ```
 
 `index.html`:
