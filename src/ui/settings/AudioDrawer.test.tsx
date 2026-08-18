@@ -63,4 +63,20 @@ describe('AudioDrawer', () => {
     release(222);
     await waitFor(() => expect(screen.getByTestId('file-schoolSong')).toBeEnabled());
   });
+
+  it('음원을 읽지 못하면 안내를 보여주고 아무것도 저장하지 않는다', async () => {
+    readDurationMock.mockRejectedValueOnce(new Error('음원 파일을 읽을 수 없습니다.'));
+
+    const user = userEvent.setup();
+    render(<AudioDrawer />);
+
+    const input = await screen.findByTestId('file-anthem');
+    await user.upload(input, new File(['깨진파일'], '이상한파일.mp3', { type: 'audio/mpeg' }));
+
+    expect(
+      await screen.findByText('음원 파일을 읽을 수 없습니다. mp3 파일인지 확인해 주세요.'),
+    ).toBeInTheDocument();
+    expect(await getAudioByRole('anthem')).toBeNull();
+    await waitFor(() => expect(screen.getByTestId('file-anthem')).toBeEnabled());
+  });
 });
