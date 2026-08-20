@@ -3219,7 +3219,7 @@ export function usePlayer(asset: AudioAsset | null) {
 - [ ] **Step 4: 테스트 통과 확인**
 
 Run: `npm test -- AudioController`
-Expected: PASS (8 tests)
+Expected: PASS (7 tests)
 
 - [ ] **Step 5: 전체 테스트와 빌드 확인**
 
