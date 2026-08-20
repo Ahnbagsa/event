@@ -3748,6 +3748,7 @@ git commit -m "feat: 행사 전 점검 도메인 판정과 점검 화면"
   - `getRunState(): Promise<RunState | null>`, `saveRunState(state: RunState): Promise<void>`, `clearRunState(): Promise<void>`
   - `useWakeLock(active: boolean): { supported: boolean }`
   - 라우트 `#/event/:eventId/run`
+  - 중단 위치가 남아 있으면 진행 화면에 들어갈 때 「이어서 진행 / 처음부터 시작」을 먼저 물어본다 (스펙 6.6)
 
 - [ ] **Step 1: 실패하는 저장소 테스트 작성**
 
@@ -3875,9 +3876,10 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { clearDb } from '../../db/testUtils';
 import { putEvent } from '../../db/eventRepo';
 import { putAudio } from '../../db/audioRepo';
+import { getRunState, saveRunState } from '../../db/runStateRepo';
 import { createEventFromTemplate } from '../../domain/templates';
 import { updateSegment } from '../../domain/segmentOps';
-import type { AudioRole } from '../../types';
+import type { AudioRole, EventCeremony } from '../../types';
 import RunPage from './RunPage';
 
 const play = vi.fn(() => Promise.resolve());
@@ -3922,10 +3924,11 @@ async function seedAudio(role: AudioRole) {
   });
 }
 
-async function renderRun() {
+async function seedEvent() {
   for (const role of ['pledge', 'anthem', 'silence', 'schoolSong'] as AudioRole[]) {
     await seedAudio(role);
   }
+
   let event = createEventFromTemplate('semester-opening', init);
   event = {
     ...event,
@@ -3934,7 +3937,10 @@ async function renderRun() {
     }),
   };
   await putEvent(event);
+  return event;
+}
 
+function mount(event: EventCeremony) {
   render(
     <MemoryRouter initialEntries={[`/event/${event.id}/run`]}>
       <Routes>
@@ -3942,6 +3948,11 @@ async function renderRun() {
       </Routes>
     </MemoryRouter>,
   );
+}
+
+async function renderRun() {
+  const event = await seedEvent();
+  mount(event);
   return event;
 }
 
@@ -4007,6 +4018,68 @@ describe('RunPage', () => {
     expect(await screen.findByTestId('position')).toHaveTextContent('1 / 7');
   });
 
+  it('중단된 위치가 남아 있으면 이어서 진행할지 물어본다', async () => {
+    const user = userEvent.setup();
+    const event = await seedEvent();
+    await saveRunState({
+      id: 'singleton',
+      eventId: event.id,
+      currentIndex: 3,
+      startedAt: Date.now() - 60_000,
+      updatedAt: Date.now(),
+    });
+    mount(event);
+
+    await user.click(await screen.findByRole('button', { name: '이어서 진행' }));
+    expect(await screen.findByTestId('position')).toHaveTextContent('4 / 7');
+  });
+
+  it('이어서 진행을 물어보는 동안에는 중단 위치를 덮어쓰지 않는다', async () => {
+    const event = await seedEvent();
+    await saveRunState({
+      id: 'singleton',
+      eventId: event.id,
+      currentIndex: 3,
+      startedAt: Date.now() - 60_000,
+      updatedAt: Date.now(),
+    });
+    mount(event);
+
+    await screen.findByRole('button', { name: '이어서 진행' });
+    expect((await getRunState())?.currentIndex).toBe(3);
+  });
+
+  it('처음부터를 고르면 첫 순서에서 시작한다', async () => {
+    const user = userEvent.setup();
+    const event = await seedEvent();
+    await saveRunState({
+      id: 'singleton',
+      eventId: event.id,
+      currentIndex: 3,
+      startedAt: Date.now() - 60_000,
+      updatedAt: Date.now(),
+    });
+    mount(event);
+
+    await user.click(await screen.findByRole('button', { name: '처음부터 시작' }));
+    expect(await screen.findByTestId('position')).toHaveTextContent('1 / 7');
+  });
+
+  it('다른 행사의 중단 위치는 물어보지 않는다', async () => {
+    const event = await seedEvent();
+    await saveRunState({
+      id: 'singleton',
+      eventId: 'event-다른행사',
+      currentIndex: 3,
+      startedAt: Date.now() - 60_000,
+      updatedAt: Date.now(),
+    });
+    mount(event);
+
+    expect(await screen.findByTestId('position')).toHaveTextContent('1 / 7');
+    expect(screen.queryByRole('button', { name: '이어서 진행' })).not.toBeInTheDocument();
+  });
+
   it('마지막 순서에서 다음을 누르면 종료 화면이 나온다', async () => {
     const user = userEvent.setup();
     await renderRun();
@@ -4034,7 +4107,7 @@ import { Link, useParams } from 'react-router-dom';
 import { createRunModel, runReducer } from '../../domain/runMachine';
 import { getEvent } from '../../db/eventRepo';
 import { listAudio } from '../../db/audioRepo';
-import { clearRunState, saveRunState } from '../../db/runStateRepo';
+import { clearRunState, getRunState, saveRunState } from '../../db/runStateRepo';
 import { usePlayer } from '../../audio/usePlayer';
 import { useWakeLock } from './useWakeLock';
 import { roleLabel } from '../../audio/roles';
@@ -4048,7 +4121,9 @@ export default function RunPage() {
   const [run, dispatch] = useReducer(runReducer, createRunModel(0));
   const [locked, setLocked] = useState(false);
   const [fontScale, setFontScale] = useState(1);
-  const [startedAt] = useState(() => Date.now());
+  const [startedAt, setStartedAt] = useState(() => Date.now());
+  // 중단된 위치가 남아 있으면 바로 뛰어들지 않고 먼저 물어본다.
+  const [resumeIndex, setResumeIndex] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [remaining, setRemaining] = useState<number | null>(null);
   const [showList, setShowList] = useState(false);
@@ -4057,11 +4132,24 @@ export default function RunPage() {
 
   useEffect(() => {
     void (async () => {
-      const [loadedEvent, loadedAssets] = await Promise.all([getEvent(eventId), listAudio()]);
+      // 중단 위치는 아래 저장 effect가 0으로 덮어쓰기 전에 읽어둬야 한다.
+      const [loadedEvent, loadedAssets, savedRun] = await Promise.all([
+        getEvent(eventId),
+        listAudio(),
+        getRunState(),
+      ]);
       setEvent(loadedEvent);
       setAssets(loadedAssets);
       if (loadedEvent !== null) {
         dispatch({ type: 'load', total: loadedEvent.segments.length });
+        if (
+          savedRun !== null &&
+          savedRun.eventId === loadedEvent.id &&
+          savedRun.currentIndex > 0
+        ) {
+          setResumeIndex(savedRun.currentIndex);
+          setStartedAt(savedRun.startedAt);
+        }
       }
     })();
   }, [eventId]);
@@ -4093,7 +4181,8 @@ export default function RunPage() {
   }, [remaining]);
 
   useEffect(() => {
-    if (event === null || run.phase !== 'running') return;
+    // 재개를 물어보는 동안 저장하면 중단 위치가 0으로 지워진다.
+    if (event === null || run.phase !== 'running' || resumeIndex !== null) return;
     void saveRunState({
       id: 'singleton',
       eventId: event.id,
@@ -4101,7 +4190,7 @@ export default function RunPage() {
       startedAt,
       updatedAt: Date.now(),
     });
-  }, [event, run.phase, run.index, startedAt]);
+  }, [event, run.phase, run.index, startedAt, resumeIndex]);
 
   useEffect(() => {
     if (run.phase === 'finished') void clearRunState();
@@ -4131,6 +4220,37 @@ export default function RunPage() {
 
   if (event === null) {
     return <main className="p-8 text-white">행사를 불러오는 중입니다…</main>;
+  }
+
+  if (resumeIndex !== null) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-900 p-6 text-center text-white">
+        <h1 className="text-2xl font-bold">진행하던 행사가 남아 있습니다</h1>
+        <p className="text-slate-300">
+          {resumeIndex + 1}번째 순서 「{event.segments[resumeIndex]?.name}」에서 멈췄습니다.
+        </p>
+        <div className="flex gap-3">
+          <button
+            className="rounded bg-blue-600 px-4 py-3 text-lg"
+            onClick={() => {
+              dispatch({ type: 'jump', index: resumeIndex });
+              setResumeIndex(null);
+            }}
+          >
+            이어서 진행
+          </button>
+          <button
+            className="rounded border border-slate-600 px-4 py-3 text-lg"
+            onClick={() => {
+              setStartedAt(Date.now());
+              setResumeIndex(null);
+            }}
+          >
+            처음부터 시작
+          </button>
+        </div>
+      </main>
+    );
   }
 
   if (run.phase === 'finished') {

@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { createRunModel, runReducer } from '../../domain/runMachine';
 import { getEvent } from '../../db/eventRepo';
 import { listAudio } from '../../db/audioRepo';
-import { clearRunState, saveRunState } from '../../db/runStateRepo';
+import { clearRunState, getRunState, saveRunState } from '../../db/runStateRepo';
 import { usePlayer } from '../../audio/usePlayer';
 import { useWakeLock } from './useWakeLock';
 import { roleLabel } from '../../audio/roles';
@@ -17,7 +17,9 @@ export default function RunPage() {
   const [run, dispatch] = useReducer(runReducer, createRunModel(0));
   const [locked, setLocked] = useState(false);
   const [fontScale, setFontScale] = useState(1);
-  const [startedAt] = useState(() => Date.now());
+  const [startedAt, setStartedAt] = useState(() => Date.now());
+  // 중단된 위치가 남아 있으면 바로 뛰어들지 않고 먼저 물어본다.
+  const [resumeIndex, setResumeIndex] = useState<number | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [remaining, setRemaining] = useState<number | null>(null);
   const [showList, setShowList] = useState(false);
@@ -26,11 +28,24 @@ export default function RunPage() {
 
   useEffect(() => {
     void (async () => {
-      const [loadedEvent, loadedAssets] = await Promise.all([getEvent(eventId), listAudio()]);
+      // 중단 위치는 아래 저장 effect가 0으로 덮어쓰기 전에 읽어둬야 한다.
+      const [loadedEvent, loadedAssets, savedRun] = await Promise.all([
+        getEvent(eventId),
+        listAudio(),
+        getRunState(),
+      ]);
       setEvent(loadedEvent);
       setAssets(loadedAssets);
       if (loadedEvent !== null) {
         dispatch({ type: 'load', total: loadedEvent.segments.length });
+        if (
+          savedRun !== null &&
+          savedRun.eventId === loadedEvent.id &&
+          savedRun.currentIndex > 0
+        ) {
+          setResumeIndex(savedRun.currentIndex);
+          setStartedAt(savedRun.startedAt);
+        }
       }
     })();
   }, [eventId]);
@@ -62,7 +77,8 @@ export default function RunPage() {
   }, [remaining]);
 
   useEffect(() => {
-    if (event === null || run.phase !== 'running') return;
+    // 재개를 물어보는 동안 저장하면 중단 위치가 0으로 지워진다.
+    if (event === null || run.phase !== 'running' || resumeIndex !== null) return;
     void saveRunState({
       id: 'singleton',
       eventId: event.id,
@@ -70,7 +86,7 @@ export default function RunPage() {
       startedAt,
       updatedAt: Date.now(),
     });
-  }, [event, run.phase, run.index, startedAt]);
+  }, [event, run.phase, run.index, startedAt, resumeIndex]);
 
   useEffect(() => {
     if (run.phase === 'finished') void clearRunState();
@@ -100,6 +116,37 @@ export default function RunPage() {
 
   if (event === null) {
     return <main className="p-8 text-white">행사를 불러오는 중입니다…</main>;
+  }
+
+  if (resumeIndex !== null) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-900 p-6 text-center text-white">
+        <h1 className="text-2xl font-bold">진행하던 행사가 남아 있습니다</h1>
+        <p className="text-slate-300">
+          {resumeIndex + 1}번째 순서 「{event.segments[resumeIndex]?.name}」에서 멈췄습니다.
+        </p>
+        <div className="flex gap-3">
+          <button
+            className="rounded bg-blue-600 px-4 py-3 text-lg"
+            onClick={() => {
+              dispatch({ type: 'jump', index: resumeIndex });
+              setResumeIndex(null);
+            }}
+          >
+            이어서 진행
+          </button>
+          <button
+            className="rounded border border-slate-600 px-4 py-3 text-lg"
+            onClick={() => {
+              setStartedAt(Date.now());
+              setResumeIndex(null);
+            }}
+          >
+            처음부터 시작
+          </button>
+        </div>
+      </main>
+    );
   }
 
   if (run.phase === 'finished') {

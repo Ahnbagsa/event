@@ -5,9 +5,10 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { clearDb } from '../../db/testUtils';
 import { putEvent } from '../../db/eventRepo';
 import { putAudio } from '../../db/audioRepo';
+import { getRunState, saveRunState } from '../../db/runStateRepo';
 import { createEventFromTemplate } from '../../domain/templates';
 import { updateSegment } from '../../domain/segmentOps';
-import type { AudioRole } from '../../types';
+import type { AudioRole, EventCeremony } from '../../types';
 import RunPage from './RunPage';
 
 const play = vi.fn(() => Promise.resolve());
@@ -52,7 +53,7 @@ async function seedAudio(role: AudioRole) {
   });
 }
 
-async function renderRun() {
+async function seedEvent() {
   for (const role of ['pledge', 'anthem', 'silence', 'schoolSong'] as AudioRole[]) {
     await seedAudio(role);
   }
@@ -65,7 +66,10 @@ async function renderRun() {
     }),
   };
   await putEvent(event);
+  return event;
+}
 
+function mount(event: EventCeremony) {
   render(
     <MemoryRouter initialEntries={[`/event/${event.id}/run`]}>
       <Routes>
@@ -73,6 +77,11 @@ async function renderRun() {
       </Routes>
     </MemoryRouter>,
   );
+}
+
+async function renderRun() {
+  const event = await seedEvent();
+  mount(event);
   return event;
 }
 
@@ -136,6 +145,68 @@ describe('RunPage', () => {
     await user.click(screen.getByRole('button', { name: '다음' }));
 
     expect(await screen.findByTestId('position')).toHaveTextContent('1 / 7');
+  });
+
+  it('중단된 위치가 남아 있으면 이어서 진행할지 물어본다', async () => {
+    const user = userEvent.setup();
+    const event = await seedEvent();
+    await saveRunState({
+      id: 'singleton',
+      eventId: event.id,
+      currentIndex: 3,
+      startedAt: Date.now() - 60_000,
+      updatedAt: Date.now(),
+    });
+    mount(event);
+
+    await user.click(await screen.findByRole('button', { name: '이어서 진행' }));
+    expect(await screen.findByTestId('position')).toHaveTextContent('4 / 7');
+  });
+
+  it('이어서 진행을 물어보는 동안에는 중단 위치를 덮어쓰지 않는다', async () => {
+    const event = await seedEvent();
+    await saveRunState({
+      id: 'singleton',
+      eventId: event.id,
+      currentIndex: 3,
+      startedAt: Date.now() - 60_000,
+      updatedAt: Date.now(),
+    });
+    mount(event);
+
+    await screen.findByRole('button', { name: '이어서 진행' });
+    expect((await getRunState())?.currentIndex).toBe(3);
+  });
+
+  it('처음부터를 고르면 첫 순서에서 시작한다', async () => {
+    const user = userEvent.setup();
+    const event = await seedEvent();
+    await saveRunState({
+      id: 'singleton',
+      eventId: event.id,
+      currentIndex: 3,
+      startedAt: Date.now() - 60_000,
+      updatedAt: Date.now(),
+    });
+    mount(event);
+
+    await user.click(await screen.findByRole('button', { name: '처음부터 시작' }));
+    expect(await screen.findByTestId('position')).toHaveTextContent('1 / 7');
+  });
+
+  it('다른 행사의 중단 위치는 물어보지 않는다', async () => {
+    const event = await seedEvent();
+    await saveRunState({
+      id: 'singleton',
+      eventId: 'event-다른행사',
+      currentIndex: 3,
+      startedAt: Date.now() - 60_000,
+      updatedAt: Date.now(),
+    });
+    mount(event);
+
+    expect(await screen.findByTestId('position')).toHaveTextContent('1 / 7');
+    expect(screen.queryByRole('button', { name: '이어서 진행' })).not.toBeInTheDocument();
   });
 
   it('마지막 순서에서 다음을 누르면 종료 화면이 나온다', async () => {
