@@ -1,5 +1,6 @@
 import { Routes, Route, Link } from 'react-router-dom';
 import SettingsPage from './settings/SettingsPage';
+import EditorPage from './editor/EditorPage';
 
 function Placeholder() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Placeholder />} />
       <Route path="/settings" element={<SettingsPage />} />
+      <Route path="/event/:eventId/edit" element={<EditorPage />} />
     </Routes>
   );
 }

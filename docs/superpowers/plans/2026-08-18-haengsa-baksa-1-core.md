@@ -2369,7 +2369,7 @@ describe('EditorPage', () => {
 
     const card = await screen.findByTestId(`card-${event.segments[0].id}`);
     await user.click(within(card).getByRole('button', { name: '펼치기' }));
-    await user.type(within(card).getByLabelText('사회자 멘트'), '{{}{{}학교명}} 개학식');
+    await user.type(within(card).getByLabelText('사회자 멘트'), '{{{{학교명}} 개학식');
 
     expect(await screen.findByTestId('blank-warning')).toHaveTextContent('채워야 할 빈칸 1곳');
   });
@@ -2416,7 +2416,7 @@ describe('EditorPage', () => {
 });
 ```
 
-> `userEvent.type`은 `{{`를 특수 키로 해석한다. 위 테스트처럼 `{{}`로 이스케이프해 여는 중괄호 하나를 입력한다.
+> `userEvent.type`은 `{`를 특수 키 시작으로 읽는다. 여는 중괄호 하나를 넣으려면 `{{`로 겹쳐 쓴다(`}`는 그냥 닫는 중괄호다). 그래서 `{{학교명}}`을 입력하려면 앞쪽 중괄호만 네 개로 적어 `{{{{학교명}}`로 쓴다.
 
 - [ ] **Step 2: 테스트 실패 확인**
 
@@ -2431,18 +2431,19 @@ Expected: FAIL — 모듈을 찾을 수 없음
 import { findBlanks } from '../../domain/blanks';
 
 type Props = {
+  id: string;
   value: string;
   onChange: (next: string) => void;
 };
 
-export default function ScriptField({ value, onChange }: Props) {
+export default function ScriptField({ id, value, onChange }: Props) {
   const blanks = findBlanks(value);
 
   return (
     <div className="space-y-1">
-      <label className="block text-sm font-medium" htmlFor="script">사회자 멘트</label>
+      <label className="block text-sm font-medium" htmlFor={id}>사회자 멘트</label>
       <textarea
-        id="script"
+        id={id}
         className="w-full rounded border border-gray-400 p-2"
         rows={4}
         value={value}
@@ -2528,7 +2529,11 @@ export default function SegmentCard({
             />
           </div>
 
-          <ScriptField value={segment.script} onChange={(script) => onChange({ script })} />
+          <ScriptField
+            id={`script-${segment.id}`}
+            value={segment.script}
+            onChange={(script) => onChange({ script })}
+          />
 
           <div>
             <label className="block text-sm font-medium" htmlFor={`role-${segment.id}`}>연결 음원</label>
@@ -2747,7 +2752,7 @@ import EditorPage from './editor/EditorPage';
 - [ ] **Step 7: 테스트 통과 확인**
 
 Run: `npm test`
-Expected: PASS (전체)
+Expected: PASS (전체 108개)
 
 - [ ] **Step 8: 커밋**
 
