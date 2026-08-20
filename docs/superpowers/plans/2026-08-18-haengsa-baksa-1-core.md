@@ -2930,7 +2930,7 @@ export function runReducer(state: RunModel, action: RunAction): RunModel {
 - [ ] **Step 4: 테스트 통과 확인**
 
 Run: `npm test -- runMachine`
-Expected: PASS (15 tests)
+Expected: PASS (14 tests)
 
 - [ ] **Step 5: 커밋**
 
