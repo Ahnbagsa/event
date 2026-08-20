@@ -11,7 +11,8 @@ export type RunAction =
   | { type: 'next' }
   | { type: 'prev' }
   | { type: 'jump'; index: number }
-  | { type: 'restart' };
+  | { type: 'restart' }
+  | { type: 'load'; total: number; index?: number };
 
 function clampIndex(index: number, total: number): number {
   if (total <= 0) return 0;
@@ -43,5 +44,10 @@ export function runReducer(state: RunModel, action: RunAction): RunModel {
 
     case 'restart':
       return { phase: 'ready', index: 0, total: state.total };
+
+    // 행사를 불러온 순간 순서 수가 정해진다. 이걸 기계에 넣어주지 않으면
+    // total이 0으로 남아 첫 '다음'에서 곧바로 종료로 떨어진다.
+    case 'load':
+      return runReducer(createRunModel(action.total, action.index ?? 0), { type: 'start' });
   }
 }

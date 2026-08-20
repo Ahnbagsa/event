@@ -2774,7 +2774,7 @@ git commit -m "feat: 시나리오 편집기 화면"
 - Produces:
   - `type RunPhase = 'ready' | 'running' | 'finished'`
   - `type RunModel = { phase: RunPhase; index: number; total: number }`
-  - `type RunAction = { type: 'start' } | { type: 'next' } | { type: 'prev' } | { type: 'jump'; index: number } | { type: 'restart' }`
+  - `type RunAction = { type: 'start' } | { type: 'next' } | { type: 'prev' } | { type: 'jump'; index: number } | { type: 'restart' } | { type: 'load'; total: number; index?: number }`
   - `createRunModel(total: number, index?: number): RunModel`
   - `runReducer(state: RunModel, action: RunAction): RunModel`
 
@@ -2891,7 +2891,8 @@ export type RunAction =
   | { type: 'next' }
   | { type: 'prev' }
   | { type: 'jump'; index: number }
-  | { type: 'restart' };
+  | { type: 'restart' }
+  | { type: 'load'; total: number; index?: number };
 
 function clampIndex(index: number, total: number): number {
   if (total <= 0) return 0;
@@ -2923,6 +2924,11 @@ export function runReducer(state: RunModel, action: RunAction): RunModel {
 
     case 'restart':
       return { phase: 'ready', index: 0, total: state.total };
+
+    // 행사를 불러온 순간 순서 수가 정해진다. 이걸 기계에 넣어주지 않으면
+    // total이 0으로 남아 첫 '다음'에서 곧바로 종료로 떨어진다.
+    case 'load':
+      return runReducer(createRunModel(action.total, action.index ?? 0), { type: 'start' });
   }
 }
 ```
@@ -2930,7 +2936,7 @@ export function runReducer(state: RunModel, action: RunAction): RunModel {
 - [ ] **Step 4: 테스트 통과 확인**
 
 Run: `npm test -- runMachine`
-Expected: PASS (14 tests)
+Expected: PASS (17 tests)
 
 - [ ] **Step 5: 커밋**
 
@@ -3814,7 +3820,7 @@ export async function clearRunState(): Promise<void> {
 `src/ui/run/useWakeLock.ts`:
 
 ```ts
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 type WakeLockSentinelLike = { release(): Promise<void> };
 type WakeLockCapableNavigator = Navigator & {
@@ -3868,8 +3874,10 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { clearDb } from '../../db/testUtils';
 import { putEvent } from '../../db/eventRepo';
+import { putAudio } from '../../db/audioRepo';
 import { createEventFromTemplate } from '../../domain/templates';
 import { updateSegment } from '../../domain/segmentOps';
+import type { AudioRole } from '../../types';
 import RunPage from './RunPage';
 
 const play = vi.fn(() => Promise.resolve());
@@ -3899,7 +3907,25 @@ const init = {
   targetMinutes: null,
 };
 
+// 음원이 이 기기에 없으면 재생 단추 대신 경고가 나온다(그게 정상 동작이다).
+// 재생 조작을 확인하려면 개학식 식순이 쓰는 역할을 미리 깔아둬야 한다.
+async function seedAudio(role: AudioRole) {
+  await putAudio({
+    id: `audio-${role}`,
+    role,
+    label: role,
+    data: new ArrayBuffer(8),
+    mimeType: 'audio/mpeg',
+    durationSec: 222,
+    fileName: `${role}.mp3`,
+    addedAt: 1,
+  });
+}
+
 async function renderRun() {
+  for (const role of ['pledge', 'anthem', 'silence', 'schoolSong'] as AudioRole[]) {
+    await seedAudio(role);
+  }
   let event = createEventFromTemplate('semester-opening', init);
   event = {
     ...event,
@@ -4035,7 +4061,7 @@ export default function RunPage() {
       setEvent(loadedEvent);
       setAssets(loadedAssets);
       if (loadedEvent !== null) {
-        dispatch({ type: 'jump', index: 0 });
+        dispatch({ type: 'load', total: loadedEvent.segments.length });
       }
     })();
   }, [eventId]);

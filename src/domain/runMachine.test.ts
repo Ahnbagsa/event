@@ -78,4 +78,24 @@ describe('runReducer', () => {
       total: 3,
     });
   });
+
+  it('행사를 불러오면 그 순서 수로 진행을 시작한다', () => {
+    expect(runReducer(createRunModel(0), { type: 'load', total: 7 })).toEqual({
+      phase: 'running',
+      index: 0,
+      total: 7,
+    });
+  });
+
+  it('불러올 때 중단된 위치를 이어받는다', () => {
+    expect(runReducer(createRunModel(0), { type: 'load', total: 7, index: 3 })).toEqual({
+      phase: 'running',
+      index: 3,
+      total: 7,
+    });
+  });
+
+  it('순서가 하나도 없는 행사를 불러오면 곧바로 끝난 상태다', () => {
+    expect(runReducer(createRunModel(0), { type: 'load', total: 0 }).phase).toBe('finished');
+  });
 });
