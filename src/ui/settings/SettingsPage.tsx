@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import ProfileForm from './ProfileForm';
 import AudioDrawer from './AudioDrawer';
+import StorageNotice from './StorageNotice';
 
 export default function SettingsPage() {
   return (
@@ -10,6 +11,7 @@ export default function SettingsPage() {
         <h1 className="text-lg font-bold">설정</h1>
       </header>
       <ProfileForm />
+      <StorageNotice />
       <AudioDrawer />
     </div>
   );
