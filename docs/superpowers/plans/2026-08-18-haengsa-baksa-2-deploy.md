@@ -51,10 +51,10 @@
 
 ```bash
 npm install lz-string
-npm install -D @types/lz-string
 ```
 
-> `lz-string`이 자체 타입을 포함하면 `@types/lz-string` 설치는 실패한다. 실패해도 무시하고 진행한다.
+> `@types/lz-string`는 설치하지 않는다. lz-string 1.5.0은 자체 타입(`typings/lz-string.d.ts`)을 이미 포함하는데,
+> DefinitelyTyped 스텁은 1.3 기준의 `export =` 선언이라 자체 타입을 가려 이름 있는 import가 깨진다.
 
 - [ ] **Step 2: 실패하는 테스트 작성**
 
@@ -62,6 +62,7 @@ npm install -D @types/lz-string
 
 ```ts
 import { describe, it, expect } from 'vitest';
+import { compressToEncodedURIComponent } from 'lz-string';
 import {
   MAX_LINK_PAYLOAD,
   encodeScenario,
@@ -86,6 +87,23 @@ function sampleEvent() {
   return event;
 }
 
+// 테스트 전용 헬퍼: 검증 없이 아무 객체나 같은 방식으로 압축한다
+function encodeScenarioRaw(value: unknown): string {
+  return compressToEncodedURIComponent(JSON.stringify(value));
+}
+
+// 같은 글자를 반복하면 lz-string이 1KB 아래로 줄여 버려 한도를 못 넘긴다.
+// 실제로 길어진 대본처럼 압축이 잘 안 먹는 글자열을 만든다.
+function incompressibleText(length: number): string {
+  let seed = 1;
+  let text = '';
+  for (let index = 0; index < length; index += 1) {
+    seed = (seed * 1103515245 + 12345) % 2147483648;
+    text += String.fromCharCode(0xac00 + (seed % 11172));
+  }
+  return text;
+}
+
 describe('encodeScenario / decodeScenario', () => {
   it('압축했다가 풀면 원본과 같다', () => {
     const event = sampleEvent();
@@ -102,7 +120,7 @@ describe('encodeScenario / decodeScenario', () => {
 
   it('너무 크면 이유를 담은 오류를 던진다', () => {
     const event = sampleEvent();
-    event.segments[0].script = '가'.repeat(200000);
+    event.segments[0].script = incompressibleText(8000);
     expect(() => encodeScenario(event)).toThrow('시나리오가 너무 길어');
   });
 
@@ -119,13 +137,6 @@ describe('encodeScenario / decodeScenario', () => {
     expect(() => decodeScenario(notEvent)).toThrow('시나리오를 읽을 수 없습니다.');
   });
 });
-
-// 테스트 전용 헬퍼: 검증 없이 아무 객체나 같은 방식으로 압축한다
-function encodeScenarioRaw(value: unknown): string {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const lz = require('lz-string') as typeof import('lz-string');
-  return lz.compressToEncodedURIComponent(JSON.stringify(value));
-}
 
 describe('buildShareUrl', () => {
   it('해시 경로에 압축값을 붙인다', () => {
