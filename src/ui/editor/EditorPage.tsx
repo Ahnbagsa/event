@@ -112,7 +112,7 @@ export default function EditorPage() {
         </div>
       </header>
 
-      <div className="flex items-center gap-3 border-b border-gray-200 p-3">
+      <div className="flex items-center gap-3 border-b border-line p-3">
         <button
           className="rounded-xl bg-accent px-3 py-2 text-white disabled:bg-line"
           disabled={aiBusy}

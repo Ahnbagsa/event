@@ -163,7 +163,7 @@ export default function PreflightPage() {
                 </button>
                 {testStarted && (
                   <button
-                    className="rounded-xl bg-green-600 px-3 py-1 text-white"
+                    className="rounded-xl bg-ok px-3 py-1 text-white"
                     onClick={() => setSoundConfirmed(true)}
                   >
                     들렸어요
@@ -183,7 +183,7 @@ export default function PreflightPage() {
             />
             전화가 오면 소리가 끊깁니다. 방해금지 모드를 켰습니다.
           </label>
-          {wakeLockNote !== '' && <p className="mt-1 text-amber-700">{wakeLockNote}</p>}
+          {wakeLockNote !== '' && <p className="mt-1 text-warn">{wakeLockNote}</p>}
         </CheckRow>
       </ul>
 

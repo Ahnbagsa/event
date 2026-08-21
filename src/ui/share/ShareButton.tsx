@@ -36,23 +36,33 @@ export default function ShareButton({ event }: { event: EventCeremony }) {
   }
 
   return (
-    <span className="inline-flex flex-col items-start gap-2">
+    <>
       <Button variant="ghost" onClick={() => void handleCopy()}>링크 복사</Button>
 
+      {/* QR은 280px 고정 크기다. 이 버튼은 홈 카드와 편집기 상단 바의 가로 줄 안에
+          들어가 있어서, 패널을 그 줄 안에 그리면 휴대폰 너비에서 줄이 넘쳐 화면 밖으로
+          삐져나간다. 편집기에서는 상단 바가 sticky라 화면을 통째로 가린다.
+          그래서 패널은 흐름 밖(fixed)에 띄운다. */}
       {url !== '' && (
-        <div data-testid="share-panel"
-             className="rounded-2xl border border-line bg-paper-raised p-4 text-sm">
-          {message !== '' && <p className="mb-2 text-ok">{message}</p>}
-          {error !== '' && <p className="mb-2 text-danger">{error}</p>}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/45 p-4">
+          <div
+            data-testid="share-panel"
+            className="max-h-full w-full max-w-sm overflow-y-auto rounded-2xl border border-line bg-paper-raised p-4 text-center text-sm"
+          >
+            {message !== '' && <p className="mb-2 text-ok">{message}</p>}
+            {error !== '' && <p className="mb-2 text-danger">{error}</p>}
 
-          <QrCode value={url} />
-          <p className="mt-2 text-ink-soft">휴대폰 카메라로 찍으세요</p>
+            <div className="flex justify-center">
+              <QrCode value={url} />
+            </div>
+            <p className="mt-2 text-ink-soft">휴대폰 카메라로 찍으세요</p>
 
-          <Button className="mt-2" onClick={handleClose}>닫기</Button>
+            <Button className="mt-3" onClick={handleClose}>닫기</Button>
+          </div>
         </div>
       )}
 
       {url === '' && error !== '' && <span className="text-sm text-danger">{error}</span>}
-    </span>
+    </>
   );
 }

@@ -208,7 +208,7 @@ export default function RunPage() {
           <p className="mt-4 text-paper/70">📋 {segment?.note}</p>
         )}
         {remaining !== null && (
-          <p className={`mt-6 text-5xl font-bold ${remaining === 0 ? 'text-amber-300' : ''}`}>
+          <p className={`mt-6 text-5xl font-bold ${remaining === 0 ? 'text-warn-soft' : ''}`}>
             {remaining === 0 ? '묵념을 끝내 주세요' : formatDuration(remaining)}
           </p>
         )}
@@ -218,7 +218,7 @@ export default function RunPage() {
         <div className="flex flex-wrap items-center gap-3 border-t border-white/20 p-3">
           <span>🎵 {roleLabel(segment.audioRole!)}</span>
           {asset === null ? (
-            <span className="text-red-300">이 기기에 음원이 없습니다</span>
+            <span className="text-danger-soft">이 기기에 음원이 없습니다</span>
           ) : (
             <>
               <button className="rounded-xl bg-accent px-3 py-1"
