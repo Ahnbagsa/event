@@ -13,6 +13,7 @@
   "dependencies": {
     "idb": "^8.0.3",
     "lz-string": "^1.5.0",
+    "qrcode-generator": "^2.0.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-router-dom": "^7.18.2"
