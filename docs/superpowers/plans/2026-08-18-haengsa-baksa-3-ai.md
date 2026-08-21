@@ -2012,10 +2012,10 @@ git commit -m "feat: 계획서에서 식순을 뽑아내는 AI 호출"
 `src/gemini/generateScripts.test.ts`:
 
 ```ts
-import { describe, it, expect, vi, afterEach } from 'vitest';
-import { applyScripts } from './generateScripts';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { applyScripts, generateScripts, regenerateOne } from './generateScripts';
 import { createEventFromTemplate } from '../domain/templates';
-import type { ClientDeps } from './client';
+import type { ClientDeps, GenerateInput } from './client';
 
 const init = {
   title: '2학기 개학식',
@@ -2027,9 +2027,22 @@ const init = {
   targetMinutes: null,
 };
 
-afterEach(() => {
-  vi.doUnmock('./client');
-  vi.resetModules();
+// 인자 타입을 명시해야 mock.calls[0][0]이 tsc --noEmit을 통과한다.
+const generateTextMock = vi.fn((_input: GenerateInput, _deps: ClientDeps) =>
+  Promise.resolve({ text: '{"segments":[]}', modelUsed: 'models/x', modelChanged: false }),
+);
+
+// vi.doMock은 이미 정적 import된 모듈에 먹지 않으므로 호이스팅되는 vi.mock을 쓴다.
+vi.mock('./client', async () => {
+  const actual = await vi.importActual<typeof import('./client')>('./client');
+  return {
+    ...actual,
+    generateText: (input: GenerateInput, deps: ClientDeps) => generateTextMock(input, deps),
+  };
+});
+
+beforeEach(() => {
+  generateTextMock.mockClear();
 });
 
 describe('applyScripts', () => {
@@ -2089,38 +2102,20 @@ describe('applyScripts', () => {
 
 describe('generateScripts', () => {
   it('진행 방식을 지시문에 담아 보낸다', async () => {
-    const generateText = vi.fn(() =>
-      Promise.resolve({ text: '{"segments":[]}', modelUsed: 'models/x', modelChanged: false }),
-    );
-    vi.doMock('./client', async () => {
-      const actual = await vi.importActual<typeof import('./client')>('./client');
-      return { ...actual, generateText };
-    });
-    const { generateScripts } = await import('./generateScripts');
-
     const event = createEventFromTemplate('semester-opening', init);
     await generateScripts(event, null, {} as ClientDeps);
 
-    const instruction = String(generateText.mock.calls[0][0].systemInstruction);
+    const instruction = String(generateTextMock.mock.calls[0][0].systemInstruction);
     expect(instruction).toContain('각 교실');
   });
 });
 
 describe('regenerateOne', () => {
   it('대상 순서와 앞뒤 한 개씩만 보낸다', async () => {
-    const generateText = vi.fn(() =>
-      Promise.resolve({ text: '{"segments":[]}', modelUsed: 'models/x', modelChanged: false }),
-    );
-    vi.doMock('./client', async () => {
-      const actual = await vi.importActual<typeof import('./client')>('./client');
-      return { ...actual, generateText };
-    });
-    const { regenerateOne } = await import('./generateScripts');
-
     const event = createEventFromTemplate('semester-opening', init);
     await regenerateOne(event, event.segments[3].id, null, {} as ClientDeps);
 
-    const sent = String((generateText.mock.calls[0][0].parts as { text: string }[])[0].text);
+    const sent = String((generateTextMock.mock.calls[0][0].parts as { text: string }[])[0].text);
     expect(sent).toContain(event.segments[2].name);
     expect(sent).toContain(event.segments[3].name);
     expect(sent).toContain(event.segments[4].name);
@@ -2128,7 +2123,6 @@ describe('regenerateOne', () => {
   });
 
   it('없는 순서를 지정하면 오류를 던진다', async () => {
-    const { regenerateOne } = await import('./generateScripts');
     const event = createEventFromTemplate('semester-opening', init);
     await expect(regenerateOne(event, '없는id', null, {} as ClientDeps)).rejects.toThrow(
       '순서를 찾을 수 없습니다.',
