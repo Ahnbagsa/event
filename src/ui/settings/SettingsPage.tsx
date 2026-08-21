@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import ProfileForm from './ProfileForm';
 import AudioDrawer from './AudioDrawer';
 import StorageNotice from './StorageNotice';
+import ApiKeyForm from './ApiKeyForm';
 
 export default function SettingsPage() {
   return (
@@ -13,6 +14,7 @@ export default function SettingsPage() {
       <ProfileForm />
       <StorageNotice />
       <AudioDrawer />
+      <ApiKeyForm />
     </div>
   );
 }
