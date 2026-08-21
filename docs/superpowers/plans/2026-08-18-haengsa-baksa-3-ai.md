@@ -677,6 +677,12 @@ function jsonResponse(status: number, body: unknown): Response {
   });
 }
 
+// vi.fn(() => ...)은 인자 없는 함수로 추론되어 mock.calls[0][0]이 타입 검사를 통과하지
+// 못한다(빌드의 tsc --noEmit에서만 드러난다). 호출 인자를 fetch와 같은 모양으로 못박는다.
+function fetchMock(impl: (...args: Parameters<typeof fetch>) => Promise<Response>) {
+  return vi.fn(impl);
+}
+
 const MODELS_BODY = {
   models: [
     { name: 'models/gemini-2.5-flash', displayName: 'Flash', supportedGenerationMethods: ['generateContent'], inputTokenLimit: 1000000, outputTokenLimit: 65536 },
@@ -710,7 +716,7 @@ function makeDeps(
 
 describe('discoverModels', () => {
   it('v1beta로 조회해 쓸 수 있는 모델만 점수 순으로 돌려준다', async () => {
-    const fetchFn = vi.fn(() => Promise.resolve(jsonResponse(200, MODELS_BODY)));
+    const fetchFn = fetchMock(() => Promise.resolve(jsonResponse(200, MODELS_BODY)));
     const deps = makeDeps(fetchFn as unknown as ClientDeps['fetchFn']);
 
     const result = await discoverModels('키', deps);
@@ -766,7 +772,7 @@ describe('discoverModels', () => {
 
 describe('generateText', () => {
   it('저장된 모델로 호출하고 본문을 돌려준다', async () => {
-    const fetchFn = vi.fn(() => Promise.resolve(jsonResponse(200, textBody('안녕하세요'))));
+    const fetchFn = fetchMock(() => Promise.resolve(jsonResponse(200, textBody('안녕하세요'))));
     const deps = makeDeps(fetchFn as unknown as ClientDeps['fetchFn'], {
       selectedModel: 'models/gemini-2.5-flash',
     });
@@ -839,7 +845,7 @@ describe('generateText', () => {
       )
       .mockResolvedValueOnce(jsonResponse(200, textBody('두 번째에 성공')));
 
-    const sleep = vi.fn(() => Promise.resolve());
+    const sleep = vi.fn((_ms: number) => Promise.resolve());
     const deps = { ...makeDeps(fetchFn as unknown as ClientDeps['fetchFn'], { selectedModel: 'models/gemini-2.5-flash' }), sleep };
 
     const result = await generateText({ parts: [{ text: '안녕' }] }, deps);
@@ -855,7 +861,7 @@ describe('generateText', () => {
       .mockResolvedValueOnce(jsonResponse(503, {}))
       .mockResolvedValueOnce(jsonResponse(200, textBody('세 번째에 성공')));
 
-    const sleep = vi.fn(() => Promise.resolve());
+    const sleep = vi.fn((_ms: number) => Promise.resolve());
     const deps = { ...makeDeps(fetchFn as unknown as ClientDeps['fetchFn'], { selectedModel: 'models/gemini-2.5-flash' }), sleep };
 
     const result = await generateText({ parts: [{ text: '안녕' }] }, deps);
@@ -904,7 +910,7 @@ describe('generateText', () => {
   });
 
   it('스키마를 주면 JSON 응답을 요청한다', async () => {
-    const fetchFn = vi.fn(() => Promise.resolve(jsonResponse(200, textBody('{}'))));
+    const fetchFn = fetchMock(() => Promise.resolve(jsonResponse(200, textBody('{}'))));
     const deps = makeDeps(fetchFn as unknown as ClientDeps['fetchFn'], {
       selectedModel: 'models/gemini-2.5-flash',
     });
@@ -1226,7 +1232,7 @@ export function defaultDeps(): ClientDeps {
 - [ ] **Step 4: 테스트 통과 확인**
 
 Run: `npm test -- gemini/client`
-Expected: PASS (18 tests)
+Expected: PASS (17 tests)
 
 - [ ] **Step 5: 커밋**
 
