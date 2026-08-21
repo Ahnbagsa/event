@@ -510,24 +510,32 @@ git commit -m "feat: 시나리오 링크 복사와 가져오기 화면"
 npm install -D vite-plugin-pwa
 ```
 
-아이콘은 파란 배경에 흰 글씨 "행"을 넣은 정사각 PNG 두 장(192px, 512px)을 `public/`에 만든다. 아래 Node 스크립트로 단색 아이콘을 즉석에서 만들 수 있다.
+아이콘은 파란 배경에 흰 글씨 "행"을 넣은 정사각 PNG 두 장(192px, 512px)을 `public/`에 만든다.
+윈도우에서는 `canvas` 패키지(네이티브 빌드가 필요하다) 없이 .NET의 System.Drawing으로 바로 만들 수 있다.
 
-```bash
-node -e "
-const fs=require('fs');
-const {createCanvas}=(()=>{try{return require('canvas')}catch{return {}}})();
-if(!createCanvas){console.log('canvas 미설치 — 아이콘을 직접 준비하세요');process.exit(0)}
-for(const size of [192,512]){
-  const c=createCanvas(size,size),x=c.getContext('2d');
-  x.fillStyle='#2563eb';x.fillRect(0,0,size,size);
-  x.fillStyle='#fff';x.font=\`bold \${size*0.55}px sans-serif\`;
-  x.textAlign='center';x.textBaseline='middle';x.fillText('행',size/2,size/2);
-  fs.writeFileSync(\`public/icon-\${size}.png\`,c.toBuffer('image/png'));
+```powershell
+New-Item -ItemType Directory -Force "public" | Out-Null
+Add-Type -AssemblyName System.Drawing
+foreach ($size in 192,512) {
+  $bmp = New-Object System.Drawing.Bitmap($size, $size)
+  $g = [System.Drawing.Graphics]::FromImage($bmp)
+  $g.SmoothingMode = 'AntiAlias'
+  $g.TextRenderingHint = 'AntiAliasGridFit'
+  $g.Clear([System.Drawing.ColorTranslator]::FromHtml('#2563eb'))
+  $font = New-Object System.Drawing.Font('Malgun Gothic', ($size * 0.55), [System.Drawing.FontStyle]::Bold, [System.Drawing.GraphicsUnit]::Pixel)
+  $brush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::White)
+  $fmt = New-Object System.Drawing.StringFormat
+  $fmt.Alignment = 'Center'
+  $fmt.LineAlignment = 'Center'
+  $g.DrawString([char]0xD589, $font, $brush, (New-Object System.Drawing.RectangleF(0, 0, $size, $size)), $fmt)
+  $g.Dispose()
+  $bmp.Save((Join-Path (Get-Location) "public\icon-$size.png"), [System.Drawing.Imaging.ImageFormat]::Png)
+  $bmp.Dispose()
 }
-"
 ```
 
-`canvas` 패키지가 없으면 그림판이나 온라인 도구로 두 장을 직접 만들어 `public/`에 넣는다. **아이콘 없이 배포하면 홈 화면 추가 시 아이콘이 깨진다.**
+맥·리눅스라면 아무 그림 도구로나 두 장을 만들어 `public/`에 넣는다.
+**아이콘 없이 배포하면 홈 화면 추가 시 아이콘이 깨진다.**
 
 `public/.nojekyll`은 빈 파일로 만든다.
 
@@ -571,6 +579,11 @@ export default defineConfig({
       },
     }),
   ],
+  // IndexedDB는 주소(오리진)에 묶인다. 포트가 5174로 밀려나면 행사도 음원도 없는
+  // 빈 앱이 뜬다 — 지워진 게 아니라 다른 서랍을 여는 것이다. 포트가 이미 잡혀 있으면
+  // 조용히 옮겨가지 말고 실패하게 둔다.
+  server: { port: 5173, strictPort: true },
+  preview: { port: 5173, strictPort: true },
   test: {
     environment: 'jsdom',
     globals: true,
@@ -698,6 +711,37 @@ export default function InstallHint() {
 - [ ] **Step 6: 홈 화면에 붙이기**
 
 `src/ui/Home.tsx`에서 헤더 바로 아래에 `<InstallHint />`를 넣고 import 한다.
+
+`vitest.setup.ts`에 `matchMedia` 대역을 넣는다. jsdom에는 `window.matchMedia`가 없어서
+`<InstallHint />`를 붙이는 순간 기존 Home 테스트 3개가 `matchMedia is not a function`으로 깨진다.
+실제 브라우저에는 모두 있으므로 앱 코드에서 방어하지 않고 테스트 환경에서 채운다.
+
+```ts
+if (typeof window !== 'undefined' && typeof window.matchMedia !== 'function') {
+  window.matchMedia = ((query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  })) as unknown as typeof window.matchMedia;
+}
+```
+
+- [ ] **Step 6-2: 아이폰용 아이콘 태그**
+
+아이폰은 매니페스트의 `icons`를 홈 화면 추가에 쓰지 않는다. `index.html`의 `<head>`에 넣지 않으면
+아이콘 자리에 화면 캡처가 들어간다.
+
+```html
+<meta name="theme-color" content="#2563eb" />
+<link rel="apple-touch-icon" href="./icon-192.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="행사박사" />
+```
 
 - [ ] **Step 7: 테스트와 빌드 통과 확인**
 

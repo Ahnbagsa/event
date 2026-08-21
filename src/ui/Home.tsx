@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import InstallHint from './InstallHint';
 import ShareButton from './share/ShareButton';
 import { deleteEvent, listEvents } from '../db/eventRepo';
 import { listAudio } from '../db/audioRepo';
@@ -34,6 +35,8 @@ export default function Home() {
         <h1 className="flex-1 text-2xl font-bold">행사박사</h1>
         <Link to="/settings" className="text-blue-600">설정</Link>
       </header>
+
+      <InstallHint />
 
       <Link to="/new"
             className="mb-4 block rounded bg-blue-600 px-4 py-3 text-center text-white">
