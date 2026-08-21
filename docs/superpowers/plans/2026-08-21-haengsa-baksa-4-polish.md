@@ -336,12 +336,12 @@ export default function PageHeader({ title, backTo, backLabel = '← 뒤로', ri
 - [ ] **Step 8: 테스트 통과 확인**
 
 Run: `npm test -- kit`
-Expected: PASS (15 tests)
+Expected: PASS (14 tests)
 
 - [ ] **Step 9: 전체 테스트와 빌드 확인**
 
 Run: `npm test`
-Expected: PASS (314 tests — 기존 299 + 새 15)
+Expected: PASS (313 tests — 기존 299 + 새 14)
 
 Run: `npm run build`
 Expected: 타입 오류 없음
