@@ -1640,9 +1640,25 @@ describe('buildOutlineInstruction', () => {
 ```ts
 import { describe, it, expect, vi } from 'vitest';
 import { normalizeOutline, extractOutline } from './extractOutline';
-import type { ClientDeps } from './client';
+import type { ClientDeps, GenerateInput } from './client';
 
 const fakeDeps = {} as ClientDeps;
+
+// 인자 타입을 명시해야 mock.calls[0][0]이 tsc --noEmit을 통과한다.
+const generateTextMock = vi.fn((_input: GenerateInput, _deps: ClientDeps) =>
+  Promise.resolve({ text: '{"segments":[]}', modelUsed: 'models/x', modelChanged: false }),
+);
+
+// vi.doMock은 이미 정적 import된 모듈에는 먹지 않는다. 호이스팅되는 vi.mock으로 바꾼다.
+// 팩토리는 위 const보다 먼저 실행되지만, 화살표 함수 안에서만 참조하므로 호출 시점에는
+// 이미 초기화되어 있다.
+vi.mock('./client', async () => {
+  const actual = await vi.importActual<typeof import('./client')>('./client');
+  return {
+    ...actual,
+    generateText: (input: GenerateInput, deps: ClientDeps) => generateTextMock(input, deps),
+  };
+});
 
 describe('normalizeOutline', () => {
   it('정상 응답을 그대로 옮긴다', () => {
@@ -1710,33 +1726,34 @@ describe('normalizeOutline', () => {
 
 describe('extractOutline', () => {
   it('텍스트와 첨부를 함께 보낸다', async () => {
-    const generateText = vi.fn(() =>
-      Promise.resolve({
-        text: '{"segments":[{"name":"개식사","kind":"speech"}]}',
-        modelUsed: 'models/x',
-        modelChanged: false,
-      }),
-    );
-    vi.doMock('./client', async () => {
-      const actual = await vi.importActual<typeof import('./client')>('./client');
-      return { ...actual, generateText };
+    generateTextMock.mockClear();
+    generateTextMock.mockResolvedValue({
+      text: '{"segments":[{"name":"개식사","kind":"speech"}]}',
+      modelUsed: 'models/x',
+      modelChanged: false,
     });
-    const { extractOutline: subject } = await import('./extractOutline');
 
-    const result = await subject(
+    const result = await extractOutline(
       { text: '개학식 계획서', files: [{ mimeType: 'application/pdf', base64: 'AAA' }] },
       null,
       fakeDeps,
     );
 
     expect(result.seeds).toHaveLength(1);
-    const sentParts = generateText.mock.calls[0][0].parts;
+    const sentParts = generateTextMock.mock.calls[0][0].parts;
     expect(sentParts).toContainEqual({ text: '개학식 계획서' });
     expect(sentParts).toContainEqual({
       inlineData: { mimeType: 'application/pdf', data: 'AAA' },
     });
+  });
 
-    vi.doUnmock('./client');
+  it('넣은 내용이 없으면 호출하지 않고 안내한다', async () => {
+    generateTextMock.mockClear();
+
+    await expect(extractOutline({ text: '   ', files: [] }, null, fakeDeps)).rejects.toThrow(
+      '계획서 내용을 먼저 넣어 주세요.',
+    );
+    expect(generateTextMock).not.toHaveBeenCalled();
   });
 });
 ```
@@ -1965,7 +1982,7 @@ export async function extractOutline(
 - [ ] **Step 5: 테스트 통과 확인**
 
 Run: `npm test -- prompts extractOutline`
-Expected: PASS (14 tests)
+Expected: PASS (15 tests)
 
 - [ ] **Step 6: 커밋**
 
