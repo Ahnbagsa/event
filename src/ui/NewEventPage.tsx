@@ -57,6 +57,11 @@ export default function NewEventPage() {
         <h1 className="text-lg font-bold">새 행사 만들기</h1>
       </header>
 
+      <Link to="/new/plan"
+            className="block rounded border border-blue-400 p-3 text-center text-blue-700">
+        📄 계획서 파일이나 붙여넣은 글에서 식순 뽑기
+      </Link>
+
       <div>
         <label className="block text-sm font-medium" htmlFor="templateId">행사 종류</label>
         <select id="templateId" className={field} value={templateId}

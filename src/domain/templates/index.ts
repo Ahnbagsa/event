@@ -37,22 +37,19 @@ export function getTemplate(id: string): CeremonyTemplate | null {
   return TEMPLATES.find((template) => template.id === id) ?? null;
 }
 
-export function createEventFromTemplate(templateId: string, init: EventInit): EventCeremony {
-  const template = getTemplate(templateId);
-  if (template === null) throw new Error('알 수 없는 행사 템플릿입니다.');
-
+export function createEventFromSeeds(seeds: SegmentSeed[], init: EventInit): EventCeremony {
   const now = Date.now();
   return {
     id: newId('event'),
     title: init.title,
-    templateId,
+    templateId: 'custom',
     date: init.date,
     place: init.place,
     mode: init.mode,
     audience: init.audience,
     tone: init.tone,
     targetMinutes: init.targetMinutes,
-    segments: template.seeds.map((seedValue, index) => ({
+    segments: seeds.map((seedValue, index) => ({
       ...seedValue,
       id: newId('seg'),
       order: index,
@@ -60,4 +57,10 @@ export function createEventFromTemplate(templateId: string, init: EventInit): Ev
     createdAt: now,
     updatedAt: now,
   };
+}
+
+export function createEventFromTemplate(templateId: string, init: EventInit): EventCeremony {
+  const template = getTemplate(templateId);
+  if (template === null) throw new Error('알 수 없는 행사 템플릿입니다.');
+  return { ...createEventFromSeeds(template.seeds, init), templateId };
 }
