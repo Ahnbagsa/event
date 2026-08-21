@@ -1,8 +1,29 @@
 @import "tailwindcss";
 
+/* Tailwind v4는 @theme의 --color-* 를 bg-*, text-*, border-* 유틸리티로 만들어 준다.
+   화면에서는 여기 정의한 이름만 쓴다. 색을 바꿀 일이 생기면 이 파일만 고친다. */
+@theme {
+  --color-paper: #FDFBF6;
+  --color-paper-raised: #FFFFFF;
+  --color-ink: #1B1917;
+  --color-ink-soft: #6B635C;
+  --color-line: #E7E0D5;
+  --color-accent: #C75B2A;
+  --color-accent-strong: #A8471E;
+  --color-accent-soft: #FCEDE4;
+  --color-ok: #2F6B4F;
+  --color-warn: #B45309;
+  --color-warn-soft: #FDF3E3;
+  --color-danger: #B02A24;
+  --color-danger-soft: #FBEAE8;
+  --color-stage: #14110F;
+}
+
 html, body, #root { height: 100%; }
 body {
   margin: 0;
   font-family: system-ui, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
   word-break: keep-all;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
 }
