@@ -12,6 +12,8 @@ type Props = {
   onChange: (patch: Partial<Segment>) => void;
   onMove: (delta: number) => void;
   onRemove: () => void;
+  aiBusy: boolean;
+  onRegenerate: () => void;
 };
 
 export default function SegmentCard({
@@ -21,6 +23,8 @@ export default function SegmentCard({
   onChange,
   onMove,
   onRemove,
+  aiBusy,
+  onRegenerate,
 }: Props) {
   const [open, setOpen] = useState(false);
   const seconds = estimateSegmentSeconds(segment, audioDurationSec);
@@ -129,6 +133,14 @@ export default function SegmentCard({
               onChange={(e) => onChange({ note: e.target.value })}
             />
           </div>
+
+          <button
+            className="rounded border border-emerald-600 px-3 py-1 text-emerald-700 disabled:opacity-50"
+            disabled={aiBusy}
+            onClick={onRegenerate}
+          >
+            🔄 이 순서만 다시 생성
+          </button>
         </div>
       )}
     </li>

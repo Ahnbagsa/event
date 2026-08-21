@@ -9,6 +9,9 @@ import { STANDARD_EXTRA_SEEDS, blankSeed } from '../../domain/templates';
 import { estimateTotalSeconds } from '../../domain/timeEstimator';
 import { countBlanks } from '../../domain/blanks';
 import { formatDuration } from '../../lib/format';
+import { generateScripts, regenerateOne } from '../../gemini/generateScripts';
+import { defaultDeps, GeminiError } from '../../gemini/client';
+import { getProfile } from '../../db/profileRepo';
 import type { AudioRole, EventCeremony, Segment } from '../../types';
 
 export default function EditorPage() {
@@ -17,6 +20,8 @@ export default function EditorPage() {
   const [durations, setDurations] = useState<Map<AudioRole, number>>(new Map());
   const [saved, setSaved] = useState(false);
   const [showPalette, setShowPalette] = useState(false);
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiError, setAiError] = useState('');
 
   useEffect(() => {
     void getEvent(eventId).then(setEvent);
@@ -47,6 +52,40 @@ export default function EditorPage() {
     setSaved(true);
   }
 
+  function describeAiError(caught: unknown): string {
+    if (caught instanceof GeminiError) return caught.info.message;
+    if (caught instanceof Error) return caught.message;
+    return '멘트를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.';
+  }
+
+  async function handleGenerateAll() {
+    if (event === null) return;
+    setAiBusy(true);
+    setAiError('');
+    try {
+      const profile = await getProfile();
+      setSegments(await generateScripts(event, profile, defaultDeps()));
+    } catch (caught) {
+      setAiError(describeAiError(caught));
+    } finally {
+      setAiBusy(false);
+    }
+  }
+
+  async function handleRegenerate(segmentId: string) {
+    if (event === null) return;
+    setAiBusy(true);
+    setAiError('');
+    try {
+      const profile = await getProfile();
+      setSegments(await regenerateOne(event, segmentId, profile, defaultDeps()));
+    } catch (caught) {
+      setAiError(describeAiError(caught));
+    } finally {
+      setAiBusy(false);
+    }
+  }
+
   return (
     <main className="mx-auto max-w-2xl pb-16">
       <header className="sticky top-0 z-10 space-y-1 border-b border-gray-300 bg-white p-3">
@@ -73,6 +112,17 @@ export default function EditorPage() {
         </div>
       </header>
 
+      <div className="flex items-center gap-3 border-b border-gray-200 p-3">
+        <button
+          className="rounded bg-emerald-600 px-3 py-2 text-white disabled:bg-gray-400"
+          disabled={aiBusy}
+          onClick={() => void handleGenerateAll()}
+        >
+          {aiBusy ? '멘트를 쓰는 중입니다…' : 'AI로 멘트 채우기'}
+        </button>
+        {aiError !== '' && <span className="text-sm text-red-600">{aiError}</span>}
+      </div>
+
       <ul className="space-y-2 p-3">
         {event.segments.map((segment) => (
           <SegmentCard
@@ -85,6 +135,8 @@ export default function EditorPage() {
             onChange={(patch) => setSegments(updateSegment(event.segments, segment.id, patch))}
             onMove={(delta) => setSegments(moveSegment(event.segments, segment.id, delta))}
             onRemove={() => setSegments(removeSegment(event.segments, segment.id))}
+            aiBusy={aiBusy}
+            onRegenerate={() => void handleRegenerate(segment.id)}
           />
         ))}
       </ul>
