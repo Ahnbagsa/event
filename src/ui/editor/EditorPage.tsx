@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import SegmentCard from './SegmentCard';
+import ShareButton from '../share/ShareButton';
 import { getEvent, putEvent } from '../../db/eventRepo';
 import { listAudio } from '../../db/audioRepo';
 import { insertSegment, moveSegment, removeSegment, updateSegment } from '../../domain/segmentOps';
@@ -56,6 +57,7 @@ export default function EditorPage() {
                   onClick={() => void handleSave()}>
             저장
           </button>
+          <ShareButton event={event} />
         </div>
         <div className="flex items-center gap-3 text-sm">
           <span data-testid="total-time">예상 {formatDuration(totalSeconds)}</span>

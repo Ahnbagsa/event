@@ -5,6 +5,7 @@ import SettingsPage from './settings/SettingsPage';
 import EditorPage from './editor/EditorPage';
 import PreflightPage from './preflight/PreflightPage';
 import RunPage from './run/RunPage';
+import ImportPage from './share/ImportPage';
 
 export default function App() {
   return (
@@ -12,6 +13,7 @@ export default function App() {
       <Route path="/" element={<Home />} />
       <Route path="/new" element={<NewEventPage />} />
       <Route path="/settings" element={<SettingsPage />} />
+      <Route path="/import" element={<ImportPage />} />
       <Route path="/event/:eventId/edit" element={<EditorPage />} />
       <Route path="/event/:eventId/preflight" element={<PreflightPage />} />
       <Route path="/event/:eventId/run" element={<RunPage />} />

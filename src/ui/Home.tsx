@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import ShareButton from './share/ShareButton';
 import { deleteEvent, listEvents } from '../db/eventRepo';
 import { listAudio } from '../db/audioRepo';
 import { estimateTotalSeconds } from '../domain/timeEstimator';
@@ -55,6 +56,7 @@ export default function Home() {
             <div className="mt-2 flex gap-3 text-sm">
               <Link to={`/event/${event.id}/edit`} className="text-blue-600">편집</Link>
               <Link to={`/event/${event.id}/preflight`} className="text-blue-600">진행</Link>
+              <ShareButton event={event} />
               {confirmId === event.id ? (
                 <>
                   <button className="text-red-600"
