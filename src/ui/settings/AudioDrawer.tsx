@@ -56,25 +56,25 @@ export default function AudioDrawer() {
   return (
     <section className="mx-auto max-w-xl space-y-4 p-4">
       <h2 className="text-xl font-bold">음원 서랍</h2>
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-ink-soft">
         이 기기에 한 번만 등록해 두면 모든 행사에서 쓰입니다. 인터넷 없이도 재생됩니다.
       </p>
-      {error !== '' && <p className="text-red-600">{error}</p>}
+      {error !== '' && <p className="text-danger">{error}</p>}
 
       <ul className="space-y-2">
         {STANDARD_ROLES.map(({ role, label, hint }) => {
           const asset = assets.find((entry) => entry.role === role) ?? null;
           return (
             <li key={role} data-testid={`slot-${role}`}
-                className="rounded border border-gray-300 p-3">
+                className="rounded-xl border border-line p-3">
               <div className="flex items-baseline justify-between">
                 <span className="font-medium">{label}</span>
-                <span className="text-sm text-gray-500">{hint}</span>
+                <span className="text-sm text-ink-soft">{hint}</span>
               </div>
 
               <div className="mt-2 text-sm">
                 {asset === null ? (
-                  <span className="text-gray-500">없음</span>
+                  <span className="text-ink-soft">없음</span>
                 ) : (
                   <span>
                     {asset.fileName} · <span>{formatDuration(asset.durationSec)}</span>
@@ -97,7 +97,7 @@ export default function AudioDrawer() {
                 />
                 {busyRole === role && <span className="text-sm">읽는 중…</span>}
                 {asset !== null && (
-                  <button className="text-sm text-red-600"
+                  <button className="text-sm text-danger"
                           onClick={() => void handleDelete(asset.id)}>
                     삭제
                   </button>

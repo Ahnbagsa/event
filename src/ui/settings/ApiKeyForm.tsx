@@ -101,7 +101,7 @@ export default function ApiKeyForm() {
   return (
     <section className="mx-auto max-w-xl space-y-4 p-4">
       <h2 className="text-xl font-bold">AI 연결</h2>
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-ink-soft">
         Google AI Studio에서 무료 API 키를 발급받아 넣어 주세요. 키는 이 기기에만 저장됩니다.
         AI 없이도 대본을 직접 작성하고 행사를 진행할 수 있습니다.
       </p>
@@ -111,34 +111,34 @@ export default function ApiKeyForm() {
         <input
           id="apiKey"
           type="password"
-          className="w-full rounded border border-gray-400 px-3 py-2"
+          className="w-full rounded-xl border border-line px-3 py-2"
           value={apiKey}
           onChange={(e) => setApiKey(e.target.value)}
         />
       </div>
 
       <div className="flex gap-2">
-        <button className="rounded bg-blue-600 px-4 py-2 text-white disabled:bg-gray-400"
+        <button className="rounded-xl bg-accent px-4 py-2 text-white disabled:bg-line"
                 disabled={busy || apiKey.trim() === ''}
                 onClick={() => void handleSaveAndDiscover()}>
           저장하고 모델 찾기
         </button>
-        <button className="rounded border border-gray-400 px-4 py-2 disabled:opacity-50"
+        <button className="rounded-xl border border-line px-4 py-2 disabled:opacity-50"
                 disabled={busy || settings.geminiApiKey === ''}
                 onClick={() => void handleTest()}>
           연결 테스트
         </button>
       </div>
 
-      {message !== '' && <p className="text-green-700">{message}</p>}
-      {error !== '' && <p className="text-red-600">{error}</p>}
+      {message !== '' && <p className="text-ok">{message}</p>}
+      {error !== '' && <p className="text-danger">{error}</p>}
 
       {settings.discoveredModels.length > 0 && (
         <div>
           <label className="block text-sm font-medium" htmlFor="model">사용할 모델</label>
           <select
             id="model"
-            className="w-full rounded border border-gray-400 px-3 py-2"
+            className="w-full rounded-xl border border-line px-3 py-2"
             value={settings.selectedModel ?? ''}
             onChange={(e) => void handlePickModel(e.target.value)}
           >
@@ -148,14 +148,14 @@ export default function ApiKeyForm() {
               </option>
             ))}
           </select>
-          <p className="mt-1 text-sm text-gray-600">
+          <p className="mt-1 text-sm text-ink-soft">
             보통은 그대로 두시면 됩니다. 앱이 가장 알맞은 모델을 자동으로 고릅니다.
           </p>
         </div>
       )}
 
       {report !== null && (
-        <ul data-testid="test-report" className="space-y-1 rounded border border-gray-300 p-3 text-sm">
+        <ul data-testid="test-report" className="space-y-1 rounded-xl border border-line p-3 text-sm">
           {report.map((line) => (
             <li key={line.label}>
               {line.state === 'ok' ? '✅' : line.state === 'fail' ? '❌' : '⏳'} {line.label}

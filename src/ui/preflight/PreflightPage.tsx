@@ -21,7 +21,7 @@ function CheckRow({
   children?: React.ReactNode;
 }) {
   return (
-    <li data-testid={testId} className="rounded border border-gray-300 p-3">
+    <li data-testid={testId} className="rounded-xl border border-line p-3">
       <p className="font-medium">
         {ok ? '✅' : '⚠️'} {title}
       </p>
@@ -82,11 +82,11 @@ export default function PreflightPage() {
   return (
     <main className="mx-auto max-w-xl p-4 pb-24">
       <header className="mb-4 flex items-center gap-3">
-        <Link to={`/event/${event.id}/edit`} className="text-blue-600">← 편집</Link>
+        <Link to={`/event/${event.id}/edit`} className="text-accent">← 편집</Link>
         <h1 className="text-lg font-bold">행사 전 점검</h1>
       </header>
 
-      <p className="mb-3 text-sm text-gray-600">
+      <p className="mb-3 text-sm text-ink-soft">
         행사 5분 전에 이 화면을 통과시켜 주세요. 여기만 통과하면 진행 중 사고가 나지 않습니다.
       </p>
 
@@ -118,7 +118,7 @@ export default function PreflightPage() {
         >
           {result.malformed.length > 0 && (
             <>
-              <p className="text-gray-600">
+              <p className="text-ink-soft">
                 {'{{교장 성함}}'}처럼 짝이 맞아야 합니다. 한쪽이 빠지면 대본에 그대로 찍힙니다.
               </p>
               <ul className="list-disc pl-5">
@@ -142,7 +142,7 @@ export default function PreflightPage() {
           {result.missingAudioRoles.length > 0 && (
             <p>
               {result.missingAudioRoles.map(roleLabel).join(', ')} —{' '}
-              <Link to="/settings" className="text-blue-600">지금 등록하기</Link>
+              <Link to="/settings" className="text-accent">지금 등록하기</Link>
             </p>
           )}
         </CheckRow>
@@ -150,12 +150,12 @@ export default function PreflightPage() {
         <CheckRow testId="check-sound" ok={soundConfirmed} title="소리가 실제로 나는지 확인">
           {!soundConfirmed && (
             <div className="space-y-2">
-              <p className="text-gray-600">
+              <p className="text-ink-soft">
                 아이폰은 옆면 무음 스위치가 켜져 있으면 소리가 나지 않습니다. 꼭 귀로 확인해 주세요.
               </p>
               <div className="flex gap-2">
                 <button
-                  className="rounded border border-gray-400 px-3 py-1"
+                  className="rounded-xl border border-line px-3 py-1"
                   disabled={testAsset === null}
                   onClick={() => void handleSoundTest()}
                 >
@@ -163,7 +163,7 @@ export default function PreflightPage() {
                 </button>
                 {testStarted && (
                   <button
-                    className="rounded bg-green-600 px-3 py-1 text-white"
+                    className="rounded-xl bg-green-600 px-3 py-1 text-white"
                     onClick={() => setSoundConfirmed(true)}
                   >
                     들렸어요
@@ -192,7 +192,7 @@ export default function PreflightPage() {
       </p>
 
       <button
-        className="mt-4 w-full rounded bg-blue-600 px-4 py-3 text-lg text-white disabled:bg-gray-400"
+        className="mt-4 w-full rounded-xl bg-accent px-4 py-3 text-lg text-white disabled:bg-line"
         disabled={!canStart}
         onClick={() => navigate(`/event/${event.id}/run`)}
       >

@@ -51,7 +51,7 @@ export default function OutlineReviewPage() {
     return (
       <main className="mx-auto max-w-xl p-6">
         <p>계획서를 먼저 넣어 주세요.</p>
-        <Link to="/new/plan" className="mt-3 inline-block text-blue-600">← 계획서 넣기로</Link>
+        <Link to="/new/plan" className="mt-3 inline-block text-accent">← 계획서 넣기로</Link>
       </main>
     );
   }
@@ -87,35 +87,35 @@ export default function OutlineReviewPage() {
     navigate(`/event/${event.id}/edit`);
   }
 
-  const field = 'w-full rounded border border-gray-400 px-3 py-2';
+  const field = 'w-full rounded-xl border border-line px-3 py-2';
 
   return (
     <main className="mx-auto max-w-xl space-y-4 p-4 pb-16">
       <header className="flex items-center gap-3">
-        <Link to="/new/plan" className="text-blue-600">← 다시 넣기</Link>
+        <Link to="/new/plan" className="text-accent">← 다시 넣기</Link>
         <h1 className="text-lg font-bold">식순 확인</h1>
       </header>
 
       {seeds.length === 0 && (
-        <p className="rounded bg-amber-100 p-3 text-sm">
+        <p className="rounded-xl bg-warn-soft p-3 text-sm">
           계획서에서 식순을 찾지 못했습니다. 아래에서 직접 순서를 추가하시거나,
-          <Link to="/new" className="text-blue-600"> 표준 템플릿으로 시작</Link>하셔도 됩니다.
+          <Link to="/new" className="text-accent"> 표준 템플릿으로 시작</Link>하셔도 됩니다.
         </p>
       )}
 
       <ul className="space-y-2">
         {seeds.map((seed, index) => (
           <li key={index} data-testid="outline-row"
-              className="flex items-center gap-2 rounded border border-gray-300 p-2">
-            <span className="w-6 text-sm text-gray-500">{index + 1}</span>
+              className="flex items-center gap-2 rounded-xl border border-line p-2">
+            <span className="w-6 text-sm text-ink-soft">{index + 1}</span>
             <input
-              className="flex-1 rounded border border-gray-400 px-2 py-1"
+              className="flex-1 rounded-xl border border-line px-2 py-1"
               aria-label={`${index + 1}번 순서명`}
               value={seed.name}
               onChange={(e) => update(index, { name: e.target.value })}
             />
             <select
-              className="rounded border border-gray-400 px-1 py-1 text-sm"
+              className="rounded-xl border border-line px-1 py-1 text-sm"
               aria-label={`${index + 1}번 종류`}
               value={seed.kind}
               onChange={(e) => update(index, { kind: e.target.value as SegmentKind })}
@@ -124,7 +124,7 @@ export default function OutlineReviewPage() {
                 <option key={kind.value} value={kind.value}>{kind.label}</option>
               ))}
             </select>
-            <button className="text-sm text-red-600"
+            <button className="text-sm text-danger"
                     onClick={() => setSeeds(seeds.filter((_, i) => i !== index))}>
               삭제
             </button>
@@ -132,12 +132,12 @@ export default function OutlineReviewPage() {
         ))}
       </ul>
 
-      <button className="rounded border border-gray-400 px-3 py-2"
+      <button className="rounded-xl border border-line px-3 py-2"
               onClick={() => setSeeds([...seeds, blankSeed()])}>
         ＋ 순서 추가
       </button>
 
-      <hr className="border-gray-300" />
+      <hr className="border-line" />
 
       <div>
         <label className="block text-sm font-medium" htmlFor="title">행사 제목</label>
@@ -158,7 +158,7 @@ export default function OutlineReviewPage() {
         </div>
       </div>
 
-      <fieldset className="rounded border border-blue-400 p-3">
+      <fieldset className="rounded-xl border border-accent p-3">
         <legend className="px-1 text-sm font-medium">진행 방식</legend>
         <label className="flex items-center gap-2">
           <input type="radio" name="mode" checked={mode === 'inPerson'}
@@ -194,9 +194,9 @@ export default function OutlineReviewPage() {
         </div>
       </div>
 
-      {error !== '' && <p className="text-red-600">{error}</p>}
+      {error !== '' && <p className="text-danger">{error}</p>}
 
-      <button className="w-full rounded bg-blue-600 px-4 py-3 text-white"
+      <button className="w-full rounded-xl bg-accent px-4 py-3 text-white"
               onClick={() => void handleCreate()}>
         이 식순으로 행사 만들기
       </button>

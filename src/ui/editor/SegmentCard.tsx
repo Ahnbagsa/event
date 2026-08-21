@@ -30,19 +30,19 @@ export default function SegmentCard({
   const seconds = estimateSegmentSeconds(segment, audioDurationSec);
 
   return (
-    <li data-testid={`card-${segment.id}`} className="rounded border border-gray-300 p-3">
+    <li data-testid={`card-${segment.id}`} className="rounded-xl border border-line p-3">
       <div className="flex items-center gap-2">
         {segment.groupLabel !== null && (
-          <span className="rounded bg-gray-200 px-2 py-0.5 text-xs">{segment.groupLabel}</span>
+          <span className="rounded-xl bg-accent-soft px-2 py-0.5 text-xs">{segment.groupLabel}</span>
         )}
         <span data-testid="segment-name" className="flex-1 font-medium">
           {segment.name}
         </span>
-        <span className="text-sm text-gray-500">{formatDuration(seconds)}</span>
+        <span className="text-sm text-ink-soft">{formatDuration(seconds)}</span>
         <button className="px-2" aria-label="위로" onClick={() => onMove(-1)}>▲</button>
         <button className="px-2" aria-label="아래로" onClick={() => onMove(1)}>▼</button>
-        <button className="px-2 text-red-600" onClick={onRemove}>삭제</button>
-        <button className="px-2 text-blue-600" onClick={() => setOpen(!open)}>
+        <button className="px-2 text-danger" onClick={onRemove}>삭제</button>
+        <button className="px-2 text-accent" onClick={() => setOpen(!open)}>
           {open ? '접기' : '펼치기'}
         </button>
       </div>
@@ -50,7 +50,7 @@ export default function SegmentCard({
       {segment.audioRole !== null && (
         <p className="mt-1 text-sm">
           🎵 {roleLabel(segment.audioRole)}
-          {audioMissing && <span className="ml-2 text-red-600">⚠ 이 기기에 음원이 없습니다</span>}
+          {audioMissing && <span className="ml-2 text-danger">⚠ 이 기기에 음원이 없습니다</span>}
         </p>
       )}
 
@@ -60,7 +60,7 @@ export default function SegmentCard({
             <label className="block text-sm font-medium" htmlFor={`name-${segment.id}`}>순서명</label>
             <input
               id={`name-${segment.id}`}
-              className="w-full rounded border border-gray-400 px-2 py-1"
+              className="w-full rounded-xl border border-line px-2 py-1"
               value={segment.name}
               onChange={(e) => onChange({ name: e.target.value })}
             />
@@ -76,7 +76,7 @@ export default function SegmentCard({
             <label className="block text-sm font-medium" htmlFor={`role-${segment.id}`}>연결 음원</label>
             <select
               id={`role-${segment.id}`}
-              className="rounded border border-gray-400 px-2 py-1"
+              className="rounded-xl border border-line px-2 py-1"
               value={segment.audioRole ?? ''}
               onChange={(e) =>
                 onChange({ audioRole: e.target.value === '' ? null : (e.target.value as AudioRole) })
@@ -95,7 +95,7 @@ export default function SegmentCard({
               <input
                 id={`timer-${segment.id}`}
                 type="number"
-                className="w-28 rounded border border-gray-400 px-2 py-1"
+                className="w-28 rounded-xl border border-line px-2 py-1"
                 value={segment.timerSec ?? 60}
                 onChange={(e) => onChange({ timerSec: Number(e.target.value) })}
               />
@@ -108,7 +108,7 @@ export default function SegmentCard({
               <input
                 id={`addr-${segment.id}`}
                 type="number"
-                className="w-28 rounded border border-gray-400 px-2 py-1"
+                className="w-28 rounded-xl border border-line px-2 py-1"
                 value={Math.round((segment.manualDurationSec ?? 180) / 60)}
                 onChange={(e) => onChange({ manualDurationSec: Number(e.target.value) * 60 })}
               />
@@ -128,14 +128,14 @@ export default function SegmentCard({
             <label className="block text-sm font-medium" htmlFor={`note-${segment.id}`}>진행 메모</label>
             <input
               id={`note-${segment.id}`}
-              className="w-full rounded border border-gray-400 px-2 py-1"
+              className="w-full rounded-xl border border-line px-2 py-1"
               value={segment.note}
               onChange={(e) => onChange({ note: e.target.value })}
             />
           </div>
 
           <button
-            className="rounded border border-emerald-600 px-3 py-1 text-emerald-700 disabled:opacity-50"
+            className="rounded-xl border border-accent px-3 py-1 text-accent disabled:opacity-50"
             disabled={aiBusy}
             onClick={onRegenerate}
           >

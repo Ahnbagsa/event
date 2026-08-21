@@ -29,7 +29,7 @@ export default function NewEventPage() {
   const [targetMinutes, setTargetMinutes] = useState('');
   const [error, setError] = useState('');
 
-  const field = 'w-full rounded border border-gray-400 px-3 py-2';
+  const field = 'w-full rounded-xl border border-line px-3 py-2';
 
   async function handleCreate() {
     if (title.trim() === '') {
@@ -53,12 +53,12 @@ export default function NewEventPage() {
   return (
     <main className="mx-auto max-w-xl space-y-4 p-4 pb-16">
       <header className="flex items-center gap-3">
-        <Link to="/" className="text-blue-600">← 홈</Link>
+        <Link to="/" className="text-accent">← 홈</Link>
         <h1 className="text-lg font-bold">새 행사 만들기</h1>
       </header>
 
       <Link to="/new/plan"
-            className="block rounded border border-blue-400 p-3 text-center text-blue-700">
+            className="block rounded-xl border border-accent p-3 text-center text-accent">
         📄 계획서 파일이나 붙여넣은 글에서 식순 뽑기
       </Link>
 
@@ -92,9 +92,9 @@ export default function NewEventPage() {
         </div>
       </div>
 
-      <fieldset className="rounded border border-blue-400 p-3">
+      <fieldset className="rounded-xl border border-accent p-3">
         <legend className="px-1 text-sm font-medium">진행 방식</legend>
-        <p className="mb-2 text-sm text-gray-600">
+        <p className="mb-2 text-sm text-ink-soft">
           이 선택에 따라 사회자 멘트가 크게 달라집니다.
         </p>
         <label className="flex items-center gap-2">
@@ -137,9 +137,9 @@ export default function NewEventPage() {
                onChange={(e) => setTargetMinutes(e.target.value)} placeholder="20" />
       </div>
 
-      {error !== '' && <p className="text-red-600">{error}</p>}
+      {error !== '' && <p className="text-danger">{error}</p>}
 
-      <button className="w-full rounded bg-blue-600 px-4 py-3 text-white"
+      <button className="w-full rounded-xl bg-accent px-4 py-3 text-white"
               onClick={() => void handleCreate()}>
         행사 만들기
       </button>

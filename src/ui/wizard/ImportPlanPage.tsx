@@ -34,7 +34,7 @@ export default function ImportPlanPage() {
   return (
     <main className="mx-auto max-w-xl space-y-4 p-4 pb-16">
       <header className="flex items-center gap-3">
-        <Link to="/new" className="text-blue-600">← 뒤로</Link>
+        <Link to="/new" className="text-accent">← 뒤로</Link>
         <h1 className="text-lg font-bold">계획서에서 식순 뽑기</h1>
       </header>
 
@@ -45,7 +45,7 @@ export default function ImportPlanPage() {
         <textarea
           id="planText"
           rows={10}
-          className="w-full rounded border border-gray-400 p-2"
+          className="w-full rounded-xl border border-line p-2"
           placeholder="한글 문서에서 식순 부분을 드래그해 복사한 뒤 여기에 붙여넣으세요. 표를 그대로 붙여넣어도 됩니다."
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -63,7 +63,7 @@ export default function ImportPlanPage() {
           accept={ACCEPTED_PLAN_TYPES.join(',')}
           onChange={(e) => setFiles(Array.from(e.target.files ?? []))}
         />
-        <p className="mt-1 text-sm text-gray-600">
+        <p className="mt-1 text-sm text-ink-soft">
           한글(hwp) 파일은 읽을 수 없습니다. 한글에서 <strong>PDF로 저장</strong>한 뒤 그 파일을 올려 주세요.
         </p>
         {files.length > 0 && (
@@ -73,10 +73,10 @@ export default function ImportPlanPage() {
         )}
       </div>
 
-      {error !== '' && <p className="text-red-600">{error}</p>}
+      {error !== '' && <p className="text-danger">{error}</p>}
 
       <button
-        className="w-full rounded bg-blue-600 px-4 py-3 text-white disabled:bg-gray-400"
+        className="w-full rounded-xl bg-accent px-4 py-3 text-white disabled:bg-line"
         disabled={busy || (text.trim() === '' && files.length === 0)}
         onClick={() => void handleExtract()}
       >

@@ -42,12 +42,12 @@ export default function ProfileForm() {
     setSaved(true);
   }
 
-  const field = 'w-full rounded border border-gray-400 px-3 py-2';
+  const field = 'w-full rounded-xl border border-line px-3 py-2';
 
   return (
     <section className="mx-auto max-w-xl space-y-4 p-4">
       <h2 className="text-xl font-bold">학교 프로필</h2>
-      <p className="text-sm text-gray-600">
+      <p className="text-sm text-ink-soft">
         한 번 입력해 두면 모든 행사 대본에 자동으로 쓰입니다.
       </p>
 
@@ -82,10 +82,10 @@ export default function ProfileForm() {
                onChange={(e) => setFoundedDate(e.target.value)} />
       </div>
 
-      {error !== '' && <p className="text-red-600">{error}</p>}
-      {saved && <p className="text-green-700">저장했습니다.</p>}
+      {error !== '' && <p className="text-danger">{error}</p>}
+      {saved && <p className="text-ok">저장했습니다.</p>}
 
-      <button className="rounded bg-blue-600 px-4 py-2 text-white"
+      <button className="rounded-xl bg-accent px-4 py-2 text-white"
               onClick={() => void handleSave()}>
         저장
       </button>

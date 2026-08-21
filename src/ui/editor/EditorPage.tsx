@@ -88,11 +88,11 @@ export default function EditorPage() {
 
   return (
     <main className="mx-auto max-w-2xl pb-16">
-      <header className="sticky top-0 z-10 space-y-1 border-b border-gray-300 bg-white p-3">
+      <header className="sticky top-0 z-10 space-y-1 border-b border-line bg-paper-raised p-3">
         <div className="flex items-center gap-3">
-          <Link to="/" className="text-blue-600">← 홈</Link>
+          <Link to="/" className="text-accent">← 홈</Link>
           <h1 className="flex-1 truncate text-lg font-bold">{event.title}</h1>
-          <button className="rounded bg-blue-600 px-3 py-1 text-white"
+          <button className="rounded-xl bg-accent px-3 py-1 text-white"
                   onClick={() => void handleSave()}>
             저장
           </button>
@@ -101,12 +101,12 @@ export default function EditorPage() {
         <div className="flex items-center gap-3 text-sm">
           <span data-testid="total-time">예상 {formatDuration(totalSeconds)}</span>
           {blankCount > 0 && (
-            <span data-testid="blank-warning" className="rounded bg-yellow-200 px-2">
+            <span data-testid="blank-warning" className="rounded-xl bg-warn-soft px-2">
               채워야 할 빈칸 {blankCount}곳
             </span>
           )}
-          {saved && <span className="text-green-700">저장했습니다</span>}
-          <Link to={`/event/${event.id}/preflight`} className="ml-auto text-blue-600">
+          {saved && <span className="text-ok">저장했습니다</span>}
+          <Link to={`/event/${event.id}/preflight`} className="ml-auto text-accent">
             점검하러 가기 →
           </Link>
         </div>
@@ -114,13 +114,13 @@ export default function EditorPage() {
 
       <div className="flex items-center gap-3 border-b border-gray-200 p-3">
         <button
-          className="rounded bg-emerald-600 px-3 py-2 text-white disabled:bg-gray-400"
+          className="rounded-xl bg-accent px-3 py-2 text-white disabled:bg-line"
           disabled={aiBusy}
           onClick={() => void handleGenerateAll()}
         >
           {aiBusy ? '멘트를 쓰는 중입니다…' : 'AI로 멘트 채우기'}
         </button>
-        {aiError !== '' && <span className="text-sm text-red-600">{aiError}</span>}
+        {aiError !== '' && <span className="text-sm text-danger">{aiError}</span>}
       </div>
 
       <ul className="space-y-2 p-3">
@@ -142,7 +142,7 @@ export default function EditorPage() {
       </ul>
 
       <div className="px-3">
-        <button className="rounded border border-gray-400 px-3 py-2"
+        <button className="rounded-xl border border-line px-3 py-2"
                 onClick={() => setShowPalette(!showPalette)}>
           ＋ 순서 추가
         </button>
@@ -152,7 +152,7 @@ export default function EditorPage() {
             {STANDARD_EXTRA_SEEDS.map((seed) => (
               <li key={seed.name}>
                 <button
-                  className="rounded border border-blue-400 px-3 py-1 text-blue-700"
+                  className="rounded-xl border border-accent px-3 py-1 text-accent"
                   onClick={() => {
                     setSegments(insertSegment(event.segments, seed, event.segments.length));
                     setShowPalette(false);
@@ -164,7 +164,7 @@ export default function EditorPage() {
             ))}
             <li>
               <button
-                className="rounded border border-gray-400 px-3 py-1"
+                className="rounded-xl border border-line px-3 py-1"
                 onClick={() => {
                   setSegments(insertSegment(event.segments, blankSeed(), event.segments.length));
                   setShowPalette(false);

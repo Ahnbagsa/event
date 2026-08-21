@@ -1,3 +1,5 @@
+import Notice from './kit/Notice';
+
 export function isIos(): boolean {
   return /iPhone|iPad|iPod/.test(navigator.userAgent);
 }
@@ -15,7 +17,7 @@ export default function InstallHint() {
   if (!isIos() && !isAndroid()) return null;
 
   return (
-    <div className="mb-4 rounded bg-amber-100 p-3 text-sm">
+    <Notice tone="warn" className="mb-4">
       <p className="font-medium">📱 휴대폰으로 행사를 진행하시려면 먼저 설치해 주세요</p>
       {isIos() ? (
         <p className="mt-1">
@@ -28,6 +30,6 @@ export default function InstallHint() {
           설치하면 인터넷 없이도 실행됩니다.
         </p>
       )}
-    </div>
+    </Notice>
   );
 }

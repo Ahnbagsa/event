@@ -115,19 +115,19 @@ export default function RunPage() {
   }, [go, player]);
 
   if (event === null) {
-    return <main className="p-8 text-white">행사를 불러오는 중입니다…</main>;
+    return <main className="p-8 text-paper">행사를 불러오는 중입니다…</main>;
   }
 
   if (resumeIndex !== null) {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-900 p-6 text-center text-white">
+      <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-stage p-6 text-center text-paper">
         <h1 className="text-2xl font-bold">진행하던 행사가 남아 있습니다</h1>
-        <p className="text-slate-300">
+        <p className="text-paper/70">
           {resumeIndex + 1}번째 순서 「{event.segments[resumeIndex]?.name}」에서 멈췄습니다.
         </p>
         <div className="flex gap-3">
           <button
-            className="rounded bg-blue-600 px-4 py-3 text-lg"
+            className="rounded-xl bg-accent px-4 py-3 text-lg"
             onClick={() => {
               dispatch({ type: 'jump', index: resumeIndex });
               setResumeIndex(null);
@@ -136,7 +136,7 @@ export default function RunPage() {
             이어서 진행
           </button>
           <button
-            className="rounded border border-slate-600 px-4 py-3 text-lg"
+            className="rounded-xl border border-white/20 px-4 py-3 text-lg"
             onClick={() => {
               setStartedAt(Date.now());
               setResumeIndex(null);
@@ -151,40 +151,40 @@ export default function RunPage() {
 
   if (run.phase === 'finished') {
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-slate-900 text-white">
+      <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-stage text-paper">
         <h1 className="text-3xl font-bold">행사가 끝났습니다</h1>
         <p>총 소요 시간 {formatDuration(elapsed)}</p>
-        <Link to="/" className="rounded bg-blue-600 px-4 py-2">홈으로</Link>
+        <Link to="/" className="rounded-xl bg-accent px-4 py-2">홈으로</Link>
       </main>
     );
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-slate-900 text-white">
-      <header className="flex flex-wrap items-center gap-3 border-b border-slate-700 p-3 text-sm">
+    <main className="flex min-h-screen flex-col bg-stage text-paper">
+      <header className="flex flex-wrap items-center gap-3 border-b border-white/20 p-3 text-sm">
         <span className="font-medium">{event.title}</span>
         <span data-testid="position">
           {run.index + 1} / {event.segments.length}
         </span>
         <span>경과 {formatDuration(elapsed)}</span>
-        <button className="rounded border border-slate-600 px-2"
+        <button className="rounded-xl border border-white/20 px-2"
                 onClick={() => setLocked(!locked)}>
           {locked ? '잠금 해제' : '화면 잠금'}
         </button>
-        <button className="rounded border border-slate-600 px-2"
+        <button className="rounded-xl border border-white/20 px-2"
                 onClick={() => setFontScale(Math.min(fontScale + 0.2, 2.5))}>A+</button>
-        <button className="rounded border border-slate-600 px-2"
+        <button className="rounded-xl border border-white/20 px-2"
                 onClick={() => setFontScale(Math.max(fontScale - 0.2, 0.8))}>A−</button>
-        <button className="ml-auto rounded border border-slate-600 px-2"
+        <button className="ml-auto rounded-xl border border-white/20 px-2"
                 onClick={() => setShowList(!showList)}>목록</button>
       </header>
 
       {showList && (
-        <ul className="border-b border-slate-700 p-2 text-sm">
+        <ul className="border-b border-white/20 p-2 text-sm">
           {event.segments.map((entry, index) => (
             <li key={entry.id}>
               <button
-                className={`w-full px-2 py-1 text-left ${index === run.index ? 'bg-slate-700' : ''}`}
+                className={`w-full px-2 py-1 text-left ${index === run.index ? 'bg-white/10' : ''}`}
                 onClick={() => {
                   dispatch({ type: 'jump', index });
                   setShowList(false);
@@ -198,14 +198,14 @@ export default function RunPage() {
       )}
 
       <section className="flex flex-1 flex-col justify-center p-6">
-        <p className="mb-2 text-slate-400">{segment?.name}</p>
+        <p className="mb-2 text-paper/70">{segment?.name}</p>
         <p data-testid="script"
            className="whitespace-pre-wrap font-bold leading-relaxed"
            style={{ fontSize: `${fontScale * 2}rem` }}>
           {segment?.script === '' ? '(멘트가 비어 있습니다)' : segment?.script}
         </p>
         {segment?.note !== '' && (
-          <p className="mt-4 text-slate-400">📋 {segment?.note}</p>
+          <p className="mt-4 text-paper/70">📋 {segment?.note}</p>
         )}
         {remaining !== null && (
           <p className={`mt-6 text-5xl font-bold ${remaining === 0 ? 'text-amber-300' : ''}`}>
@@ -215,21 +215,21 @@ export default function RunPage() {
       </section>
 
       {segment?.audioRole !== null && segment !== null && (
-        <div className="flex flex-wrap items-center gap-3 border-t border-slate-700 p-3">
+        <div className="flex flex-wrap items-center gap-3 border-t border-white/20 p-3">
           <span>🎵 {roleLabel(segment.audioRole!)}</span>
           {asset === null ? (
-            <span className="text-red-400">이 기기에 음원이 없습니다</span>
+            <span className="text-red-300">이 기기에 음원이 없습니다</span>
           ) : (
             <>
-              <button className="rounded bg-blue-600 px-3 py-1"
+              <button className="rounded-xl bg-accent px-3 py-1"
                       onClick={() => void player.play()}>재생</button>
-              <button className="rounded border border-slate-600 px-3 py-1"
+              <button className="rounded-xl border border-white/20 px-3 py-1"
                       onClick={() => player.pause()}>일시정지</button>
-              <button className="rounded border border-slate-600 px-3 py-1"
+              <button className="rounded-xl border border-white/20 px-3 py-1"
                       onClick={() => void player.restart()}>처음부터</button>
-              <button className="rounded border border-slate-600 px-3 py-1"
+              <button className="rounded-xl border border-white/20 px-3 py-1"
                       onClick={() => void player.fadeOut(3)}>페이드아웃</button>
-              <span className="text-sm text-slate-400">
+              <span className="text-sm text-paper/70">
                 {formatDuration(player.currentTime)} / {formatDuration(player.duration)}
               </span>
             </>
@@ -237,19 +237,19 @@ export default function RunPage() {
         </div>
       )}
 
-      <p data-testid="next-preview" className="border-t border-slate-700 px-3 py-2 text-slate-400">
+      <p data-testid="next-preview" className="border-t border-white/20 px-3 py-2 text-paper/70">
         {nextSegment === null ? '마지막 순서입니다' : `다음 ▸ ${nextSegment.name}`}
       </p>
 
       <div className="flex gap-3 p-3">
         <button
-          className="flex-1 rounded bg-slate-700 py-4 text-lg disabled:opacity-40"
+          className="flex-1 rounded-xl bg-white/10 py-4 text-lg disabled:opacity-40"
           disabled={run.index === 0}
           onClick={() => go('prev')}
         >
           이전
         </button>
-        <button className="flex-[2] rounded bg-blue-600 py-4 text-lg"
+        <button className="flex-[2] rounded-xl bg-accent py-4 text-lg"
                 onClick={() => go('next')}>
           다음
         </button>

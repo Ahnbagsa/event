@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import InstallHint from './InstallHint';
+import AnbaksaMark from './kit/AnbaksaMark';
+import Card from './kit/Card';
 import ShareButton from './share/ShareButton';
 import { deleteEvent, listEvents } from '../db/eventRepo';
 import { listAudio } from '../db/audioRepo';
@@ -32,48 +34,54 @@ export default function Home() {
   return (
     <main className="mx-auto max-w-2xl p-4">
       <header className="mb-4 flex items-center gap-3">
+        <AnbaksaMark size={44} className="shrink-0 text-ink" />
         <h1 className="flex-1 text-2xl font-bold">행사박사</h1>
-        <Link to="/settings" className="text-blue-600">설정</Link>
+        <Link to="/settings" className="text-accent">설정</Link>
       </header>
 
       <InstallHint />
 
       <Link to="/new"
-            className="mb-4 block rounded bg-blue-600 px-4 py-3 text-center text-white">
+            className="mb-4 flex h-12 items-center justify-center rounded-full bg-accent px-4 text-center font-medium text-white hover:bg-accent-strong">
         ＋ 새 행사 만들기
       </Link>
 
       {events === null && <p>불러오는 중입니다…</p>}
       {events !== null && events.length === 0 && (
-        <p className="text-gray-600">아직 만든 행사가 없습니다.</p>
+        <p className="text-ink-soft">아직 만든 행사가 없습니다.</p>
       )}
 
       <ul className="space-y-2">
         {(events ?? []).map((event) => (
-          <li key={event.id} className="rounded border border-gray-300 p-3">
+          <Card as="li" key={event.id}>
             <p className="font-medium">{event.title}</p>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-ink-soft">
               {event.date} · {event.place} · 순서 {event.segments.length}개 · 예상{' '}
               {formatDuration(estimateTotalSeconds(event.segments, durations))}
             </p>
             <div className="mt-2 flex gap-3 text-sm">
-              <Link to={`/event/${event.id}/edit`} className="text-blue-600">편집</Link>
-              <Link to={`/event/${event.id}/preflight`} className="text-blue-600">진행</Link>
+              <Link to={`/event/${event.id}/edit`} className="text-accent">편집</Link>
+              <Link to={`/event/${event.id}/preflight`} className="text-accent">진행</Link>
               <ShareButton event={event} />
               {confirmId === event.id ? (
                 <>
-                  <button className="text-red-600"
+                  <button className="text-danger"
                           onClick={() => void handleDelete(event.id)}>정말 삭제</button>
                   <button onClick={() => setConfirmId(null)}>취소</button>
                 </>
               ) : (
-                <button className="text-red-600"
+                <button className="text-danger"
                         onClick={() => setConfirmId(event.id)}>삭제</button>
               )}
             </div>
-          </li>
+          </Card>
         ))}
       </ul>
+
+      <footer className="mt-10 flex flex-col items-center gap-1 pb-6 text-ink-soft">
+        <AnbaksaMark variant="full" size={48} title="안박사" />
+        <p className="text-sm">만든 이 · 안박사</p>
+      </footer>
     </main>
   );
 }
