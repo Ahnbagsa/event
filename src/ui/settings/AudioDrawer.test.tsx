@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { clearDb } from '../../db/testUtils';
-import { getAudioByRole } from '../../db/audioRepo';
+import { getAudioByRole, listAudio } from '../../db/audioRepo';
 import AudioDrawer from './AudioDrawer';
 
 const readDurationMock = vi.hoisted(() => vi.fn(() => Promise.resolve(222)));
@@ -74,9 +74,29 @@ describe('AudioDrawer', () => {
     await user.upload(input, new File(['깨진파일'], '이상한파일.mp3', { type: 'audio/mpeg' }));
 
     expect(
-      await screen.findByText('음원 파일을 읽을 수 없습니다. mp3 파일인지 확인해 주세요.'),
+      await screen.findByText(
+        '음원 파일을 읽을 수 없습니다. mp3·m4a·wav 파일인지 확인해 주세요. ' +
+          '휴대폰이라면 카카오톡이나 다운로드 폴더에 받아 둔 파일을 골라 주세요.',
+      ),
     ).toBeInTheDocument();
     expect(await getAudioByRole('anthem')).toBeNull();
     await waitFor(() => expect(screen.getByTestId('file-anthem')).toBeEnabled());
+  });
+
+  it('휴대폰처럼 종류를 알려주지 않는 파일도 받아들인다', async () => {
+    const user = userEvent.setup();
+    render(<AudioDrawer />);
+
+    // 안드로이드 파일 관리자와 카카오톡은 mp3를 종류 없이 넘기는 일이 잦다.
+    const file = new File([new Uint8Array([1, 2, 3])], '애국가.mp3', {
+      type: 'application/octet-stream',
+    });
+    await user.upload(screen.getByTestId('file-anthem'), file);
+
+    await waitFor(async () => {
+      const saved = await listAudio();
+      expect(saved).toHaveLength(1);
+      expect(saved[0].mimeType).toBe('audio/mpeg');
+    });
   });
 });

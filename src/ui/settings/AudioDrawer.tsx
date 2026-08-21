@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { STANDARD_ROLES } from '../../audio/roles';
 import { readAudioDuration } from '../../audio/readAudioDuration';
+import { guessAudioMime } from '../../audio/mimeFromName';
 import { deleteAudio, listAudio, putAudio } from '../../db/audioRepo';
 import { newId } from '../../lib/id';
 import { formatDuration } from '../../lib/format';
@@ -24,20 +25,24 @@ export default function AudioDrawer() {
     setBusyRole(role);
     try {
       const data = await file.arrayBuffer();
-      const durationSec = await readAudioDuration(data, file.type);
+      const mimeType = guessAudioMime(file.name, file.type);
+      const durationSec = await readAudioDuration(data, mimeType);
       await putAudio({
         id: newId('audio'),
         role,
         label: file.name,
         data,
-        mimeType: file.type,
+        mimeType,
         durationSec,
         fileName: file.name,
         addedAt: Date.now(),
       });
       await reload();
     } catch {
-      setError('음원 파일을 읽을 수 없습니다. mp3 파일인지 확인해 주세요.');
+      setError(
+        '음원 파일을 읽을 수 없습니다. mp3·m4a·wav 파일인지 확인해 주세요. ' +
+          '휴대폰이라면 카카오톡이나 다운로드 폴더에 받아 둔 파일을 골라 주세요.',
+      );
     } finally {
       setBusyRole(null);
     }
@@ -82,7 +87,7 @@ export default function AudioDrawer() {
                   data-testid={`file-${role}`}
                   aria-label={`${label} 파일 선택`}
                   type="file"
-                  accept="audio/*"
+                  accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.oga,.flac,.opus"
                   className="text-sm"
                   disabled={busyRole !== null}
                   onChange={(e) => {
