@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import InstallHint from './InstallHint';
+import Onboarding from './onboarding/Onboarding';
 import AnbaksaMark from './kit/AnbaksaMark';
 import Card from './kit/Card';
 import ShareButton from './share/ShareButton';
@@ -39,6 +40,7 @@ export default function Home() {
         <Link to="/settings" className="text-accent">설정</Link>
       </header>
 
+      <Onboarding />
       <InstallHint />
 
       <Link to="/new"

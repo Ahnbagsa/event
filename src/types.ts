@@ -82,6 +82,8 @@ export type AppSettings = {
   discoveredAt: number | null;
   fontScale: number;
   theme: 'dark' | 'light';
+  /** 첫 실행 안내를 사용자가 닫았는지. 예전에 저장된 설정에는 이 칸이 없어 undefined다. */
+  onboardingDismissed?: boolean;
 };
 
 export type RunState = {

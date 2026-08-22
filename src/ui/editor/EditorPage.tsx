@@ -12,6 +12,7 @@ import { formatDuration } from '../../lib/format';
 import { generateScripts, regenerateOne } from '../../gemini/generateScripts';
 import { defaultDeps, GeminiError } from '../../gemini/client';
 import { getProfile } from '../../db/profileRepo';
+import { getSettings } from '../../db/settingsRepo';
 import type { AudioRole, EventCeremony, Segment } from '../../types';
 
 export default function EditorPage() {
@@ -22,12 +23,15 @@ export default function EditorPage() {
   const [showPalette, setShowPalette] = useState(false);
   const [aiBusy, setAiBusy] = useState(false);
   const [aiError, setAiError] = useState('');
+  // 아직 확인 전에는 null이다. 잠깐 스쳐 지나가는 안내를 보이지 않으려는 것이다.
+  const [hasApiKey, setHasApiKey] = useState<boolean | null>(null);
 
   useEffect(() => {
     void getEvent(eventId).then(setEvent);
     void listAudio().then((assets) => {
       setDurations(new Map(assets.map((asset) => [asset.role, asset.durationSec])));
     });
+    void getSettings().then((settings) => setHasApiKey(settings.geminiApiKey.trim() !== ''));
   }, [eventId]);
 
   const setSegments = useCallback((segments: Segment[]) => {
@@ -116,15 +120,26 @@ export default function EditorPage() {
         </div>
       </header>
 
-      <div className="flex items-center gap-3 border-b border-line p-3">
-        <button
-          className="rounded-xl bg-accent px-3 py-2 text-white disabled:bg-line"
-          disabled={aiBusy}
-          onClick={() => void handleGenerateAll()}
-        >
-          {aiBusy ? '멘트를 쓰는 중입니다…' : 'AI로 멘트 채우기'}
-        </button>
-        {aiError !== '' && <span className="text-sm text-danger">{aiError}</span>}
+      <div className="border-b border-line p-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            className="min-h-11 rounded-xl bg-accent px-4 text-white disabled:bg-line disabled:text-ink-soft"
+            disabled={aiBusy || hasApiKey === false}
+            onClick={() => void handleGenerateAll()}
+          >
+            {aiBusy ? '멘트를 쓰는 중입니다…' : 'AI로 멘트 채우기'}
+          </button>
+          {aiError !== '' && <span className="text-sm text-danger">{aiError}</span>}
+        </div>
+
+        {/* 키가 없으면 버튼만 회색이 되어 왜 안 되는지 알 수 없다. 무엇을 하면
+            되는지, 그리고 안 해도 되는지를 함께 알려 준다. */}
+        {hasApiKey === false && (
+          <p data-testid="no-api-key" className="mt-2 text-sm text-ink-soft">
+            <Link to="/settings" className="text-accent">설정에서 무료 API 키</Link>를 넣으면
+            멘트를 자동으로 써 드립니다. 넣지 않아도 아래에서 직접 쓰고 행사를 진행할 수 있습니다.
+          </p>
+        )}
       </div>
 
       <ul className="space-y-2 p-3">

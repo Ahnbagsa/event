@@ -11,6 +11,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   discoveredAt: null,
   fontScale: 1,
   theme: 'dark',
+  onboardingDismissed: false,
 };
 
 export async function getSettings(): Promise<AppSettings> {
