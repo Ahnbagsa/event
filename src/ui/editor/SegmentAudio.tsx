@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import Button from '../kit/Button';
-import { assetForSegment, defaultAssetForRole, libSourceId, sourceIdOf } from '../../audio/audioSource';
+import {
+  assetForSegment,
+  defaultAssetForRole,
+  libSourceId,
+  pickedSourceId,
+  sourceIdOf,
+} from '../../audio/audioSource';
 import { trackUrl, tracksForRole, type LibraryTrack } from '../../media/library';
 import { addAudio, findAudioBySourceId } from '../../db/audioRepo';
 import { defaultFetchTrackDeps, fetchLibraryTrack } from '../../media/fetchLibraryTrack';
@@ -40,9 +46,13 @@ function buildChoices(segment: Segment, assets: AudioAsset[], library: LibraryTr
   }));
 
   const have = new Set(choices.map((choice) => choice.sourceId));
+  // 이 기능이 생기기 전에 목록에서 받아 둔 음원에는 이름표가 없다. 이름표로만
+  // 견주면 같은 음원이 '기기에 있음'과 '받아야 함'으로 두 번 나온다. 파일 이름으로도 견준다.
+  const haveFiles = new Set(mine.map((asset) => asset.fileName));
+
   for (const track of tracksForRole(library, segment.audioRole)) {
     const sourceId = libSourceId(track.id);
-    if (have.has(sourceId)) continue;
+    if (have.has(sourceId) || haveFiles.has(track.file)) continue;
     choices.push({
       sourceId,
       label: track.label,
@@ -78,9 +88,10 @@ export default function SegmentAudio({
   const inUse = assetForSegment(assets, segment);
   const fallback = defaultAssetForRole(assets, segment.audioRole);
   const choices = buildChoices(segment, assets, library);
+  const picked = pickedSourceId(segment);
   const pickedMissing =
-    segment.audioSourceId !== null &&
-    !choices.some((choice) => choice.onDevice && choice.sourceId === segment.audioSourceId);
+    picked !== null &&
+    !choices.some((choice) => choice.onDevice && choice.sourceId === picked);
 
   async function pick(choice: Choice) {
     setError('');
@@ -121,7 +132,7 @@ export default function SegmentAudio({
           <>
             {inUse.label}
             <span className="text-ink-soft"> · {formatDuration(inUse.durationSec)}</span>
-            {segment.audioSourceId === null && (
+            {picked === null && (
               <span className="text-ink-soft"> · 기본 음원</span>
             )}
           </>
@@ -143,7 +154,7 @@ export default function SegmentAudio({
         <Button className="h-9 px-3 text-sm" onClick={() => setOpen(!open)}>
           {open ? '닫기' : '다른 음원으로'}
         </Button>
-        {segment.audioSourceId !== null && (
+        {picked !== null && (
           <Button
             className="h-9 px-3 text-sm"
             onClick={() => onChange({ audioSourceId: null })}
@@ -160,9 +171,9 @@ export default function SegmentAudio({
           )}
           {choices.map((choice) => {
             const chosen =
-              segment.audioSourceId === null
+              picked === null
                 ? inUse !== null && sourceIdOf(inUse) === choice.sourceId
-                : segment.audioSourceId === choice.sourceId;
+                : picked === choice.sourceId;
             return (
               <li key={choice.sourceId}
                   data-testid={`choice-${choice.sourceId}`}

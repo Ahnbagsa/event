@@ -6,6 +6,7 @@ import {
   assetForSegment,
   usedSourceIds,
   sourceIdOf,
+  pickedSourceId,
 } from './audioSource';
 import type { AudioAsset, AudioRole, EventCeremony, Segment } from '../types';
 
@@ -169,5 +170,69 @@ describe('이름표가 없는 예전 음원', () => {
     const other = asset({ id: 'other', role: 'anthem', isDefault: true });
     const picked = segment({ audioSourceId: 'up:audio_old' });
     expect(assetForSegment([old, other], picked)?.id).toBe('audio_old');
+  });
+});
+
+// 실제로 겪은 일이다. 예전에 저장해 둔 순서에는 audioSourceId 칸이 아예 없어
+// undefined다. 타입은 string | null 이지만 저장된 옛 자료는 그 약속을 지키지 않는다.
+// !== null 로만 거르면 undefined가 "골랐다"로 통과해, 고른 적도 없는데
+// "고르신 음원이 이 기기에 없습니다" 경고가 떴다.
+describe('audioSourceId 칸이 없는 예전 순서', () => {
+  function legacySegment(): Segment {
+    const s = segment();
+    delete (s as { audioSourceId?: unknown }).audioSourceId;
+    return s;
+  }
+
+  it('고른 것이 없는 것으로 본다', () => {
+    expect(pickedSourceId(legacySegment())).toBeNull();
+  });
+
+  it('역할의 기본 음원을 그대로 쓴다', () => {
+    const assets = [
+      asset({ id: 'a1', role: 'anthem', sourceId: 'lib:v1' }),
+      asset({ id: 'a2', role: 'anthem', sourceId: 'lib:v1-4', isDefault: true }),
+    ];
+    expect(assetForSegment(assets, legacySegment())?.id).toBe('a2');
+  });
+
+  it('안 쓰는 음원 계산에서도 세지 않는다', () => {
+    const event: EventCeremony = {
+      id: 'e1', title: '개학식', templateId: 't', date: '2026-08-22', place: '강당',
+      mode: 'inPerson', audience: 'all', tone: 'formal', targetMinutes: null,
+      segments: [legacySegment()], createdAt: 1, updatedAt: 1,
+    };
+    expect(usedSourceIds([event])).toEqual(new Set());
+  });
+});
+
+// 실제로 겪은 일이다. 예전 자료에는 isDefault 칸이 없어서 "표시가 없으면 가장 최근 것"
+// 규칙을 쓰는데, 한 행사에서만 쓰려고 새로 받은 음원이 가장 최근이 되어 버린다.
+// 그러면 기본을 건드리지 않겠다는 약속이 예전 자료 앞에서 깨진다.
+describe('기본이 아니라고 못 박은 음원', () => {
+  it('가장 최근이어도 기본을 빼앗지 않는다', () => {
+    const assets = [
+      asset({ id: '예전것', role: 'anthem', addedAt: 1 }),
+      asset({ id: '방금받음', role: 'anthem', addedAt: 99, isDefault: false }),
+    ];
+    expect(defaultAssetForRole(assets, 'anthem')?.id).toBe('예전것');
+  });
+
+  it('기본으로 표시된 것이 있으면 그것이 이긴다', () => {
+    const assets = [
+      asset({ id: '예전것', role: 'anthem', addedAt: 1 }),
+      asset({ id: '정한것', role: 'anthem', addedAt: 5, isDefault: true }),
+      asset({ id: '방금받음', role: 'anthem', addedAt: 99, isDefault: false }),
+    ];
+    expect(defaultAssetForRole(assets, 'anthem')?.id).toBe('정한것');
+  });
+
+  // 전부 아니라고 표시되어 있어도 재생할 것은 있어야 한다.
+  it('전부 아니라고 표시되어 있으면 그중 최근 것을 쓴다', () => {
+    const assets = [
+      asset({ id: 'a', role: 'anthem', addedAt: 1, isDefault: false }),
+      asset({ id: 'b', role: 'anthem', addedAt: 9, isDefault: false }),
+    ];
+    expect(defaultAssetForRole(assets, 'anthem')?.id).toBe('b');
   });
 });

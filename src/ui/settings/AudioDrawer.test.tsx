@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { clearDb } from '../../db/testUtils';
-import { addAudio, getAudioByRole, listAudio } from '../../db/audioRepo';
+import { addAudio, getAudioByRole, listAudio, putAudio } from '../../db/audioRepo';
 import { putEvent } from '../../db/eventRepo';
 import { createEventFromTemplate } from '../../domain/templates';
 import type { AudioAsset } from '../../types';
@@ -116,8 +116,9 @@ describe('역할당 여러 개일 때', () => {
 
   beforeEach(async () => {
     await clearDb();
+    // addAudio는 기본을 건드리지 않고, putAudio는 넣은 것을 기본으로 삼는다.
     await addAudio(anthem('a1', '1절', 'lib:v1'));
-    await addAudio({ ...anthem('a2', '1~4절', 'lib:v1-4'), isDefault: true });
+    await putAudio(anthem('a2', '1~4절', 'lib:v1-4'));
   });
 
   it('받아 둔 것을 모두 보여 준다', async () => {

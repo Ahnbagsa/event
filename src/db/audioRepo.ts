@@ -30,7 +30,9 @@ export async function putAudio(asset: AudioAsset): Promise<void> {
  */
 export async function addAudio(asset: AudioAsset): Promise<void> {
   const db = await openHbDb();
-  await db.put('audio', asset);
+  // 기본이 아니라고 못 박아 둔다. 그냥 두면 예전 자료에는 isDefault 칸이 없어서
+  // "표시가 없으면 가장 최근 것" 규칙에 걸려 방금 받은 것이 기본을 빼앗는다.
+  await db.put('audio', { ...asset, isDefault: false });
 }
 
 /** 이미 갖고 있는 음원 중 하나를 그 역할의 기본으로 삼는다. */

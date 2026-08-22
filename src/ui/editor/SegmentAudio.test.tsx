@@ -162,3 +162,23 @@ describe('받아도 기본 음원은 그대로', () => {
     expect(all.filter((a) => a.isDefault === true).map((a) => a.id)).toEqual(['a1']);
   });
 });
+
+// 이 기능이 생기기 전에 목록에서 받아 둔 음원에는 이름표가 없다.
+// 이름표로만 견주면 같은 음원이 '기기에 있음'과 '받아야 함'으로 두 번 나온다.
+describe('이름표 없이 받아 둔 예전 음원', () => {
+  it('목록의 같은 음원을 다시 권하지 않는다', async () => {
+    const legacy = asset({ id: 'old', label: '1절', fileName: 'v1.mp3' });
+    delete (legacy as { sourceId?: unknown }).sourceId;
+
+    render(
+      <SegmentAudio segment={segment()} assets={[legacy]} library={library}
+                    onChange={vi.fn()} onAssetsChanged={vi.fn()} />,
+    );
+    await userEvent.click(screen.getByRole('button', { name: '다른 음원으로' }));
+
+    expect(screen.queryByTestId('choice-lib:v1')).not.toBeInTheDocument();
+    expect(screen.getByTestId('choice-up:old')).toHaveTextContent('1절');
+    // 다른 판본은 여전히 권한다.
+    expect(screen.getByTestId('choice-lib:v1-4')).toBeInTheDocument();
+  });
+});

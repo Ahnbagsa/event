@@ -17,6 +17,17 @@ export function uploadSourceId(assetId: string): string {
 }
 
 /**
+ * 이 순서가 콕 집어 고른 음원의 이름표.
+ *
+ * 타입은 `string | null`이지만 **예전에 저장해 둔 순서에는 이 칸이 아예 없어 undefined다.**
+ * `!== null`로만 거르면 undefined가 "골랐다"로 통과해, 고른 적도 없는데
+ * "고르신 음원이 이 기기에 없습니다" 경고가 뜬다. 여기서 한 번 고른다.
+ */
+export function pickedSourceId(segment: Segment): string | null {
+  return segment.audioSourceId ?? null;
+}
+
+/**
  * 이 음원의 이름표. 예전에 저장해 둔 자료에는 sourceId 칸이 아예 없으므로
  * 그때는 기기 안 번호로 하나 만들어 준다. 그래야 예전 음원도 순서에서 고를 수 있다.
  */
@@ -37,7 +48,13 @@ export function defaultAssetForRole(assets: AudioAsset[], role: AudioRole): Audi
   const marked = ofRole.find((asset) => asset.isDefault === true);
   if (marked !== undefined) return marked;
 
-  return ofRole.reduce((latest, asset) => (asset.addedAt > latest.addedAt ? asset : latest));
+  // 한 행사에서만 쓰려고 받은 음원은 isDefault: false로 못 박혀 있다. 그것이
+  // 가장 최근이라는 이유로 기본을 빼앗으면, 기본을 건드리지 않겠다는 약속이
+  // 예전 자료(isDefault 칸이 아예 없는) 앞에서 깨진다.
+  const candidates = ofRole.filter((asset) => asset.isDefault !== false);
+  const pool = candidates.length > 0 ? candidates : ofRole;
+
+  return pool.reduce((latest, asset) => (asset.addedAt > latest.addedAt ? asset : latest));
 }
 
 /**
@@ -50,9 +67,10 @@ export function defaultAssetForRole(assets: AudioAsset[], role: AudioRole): Audi
 export function assetForSegment(assets: AudioAsset[], segment: Segment): AudioAsset | null {
   if (segment.audioRole === null) return null;
 
-  if (segment.audioSourceId !== null) {
+  const wanted = pickedSourceId(segment);
+  if (wanted !== null) {
     const picked = assets.find(
-      (asset) => sourceIdOf(asset) === segment.audioSourceId && asset.role === segment.audioRole,
+      (asset) => sourceIdOf(asset) === wanted && asset.role === segment.audioRole,
     );
     if (picked !== undefined) return picked;
   }
@@ -65,8 +83,9 @@ export function usedSourceIds(events: EventCeremony[]): Set<string> {
   const used = new Set<string>();
   for (const event of events) {
     for (const segment of event.segments) {
-      if (segment.audioRole === null || segment.audioSourceId === null) continue;
-      used.add(segment.audioSourceId);
+      const wanted = pickedSourceId(segment);
+      if (segment.audioRole === null || wanted === null) continue;
+      used.add(wanted);
     }
   }
   return used;
