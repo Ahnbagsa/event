@@ -80,4 +80,13 @@ describe('겹침을 막는 전역 규칙', () => {
   it('아이폰 홈 인디케이터를 피하는 여백이 있다', () => {
     expect(css).toContain('env(safe-area-inset-bottom)');
   });
+
+  // 실제로 겪은 사고다. anywhere 는 요소의 최소 너비까지 0으로 만들기 때문에,
+  // flex-1 로 놓인 제목이 글자 하나 폭까지 쥐어짜인다. 320px 화면에서
+  // "2026학년도 2학기 개학식"이 "2026 / 학년 / 도 / …"로 끊어졌다.
+  // break-word 는 최소 너비를 건드리지 않으면서 넘칠 때만 끊는다.
+  it('긴 낱말은 break-word로 끊는다 (anywhere가 아니다)', () => {
+    expect(css).toMatch(/overflow-wrap:\s*break-word/);
+    expect(css).not.toMatch(/overflow-wrap:\s*anywhere/);
+  });
 });

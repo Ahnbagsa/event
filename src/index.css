@@ -62,8 +62,12 @@ body {
    화면에서 min-w-40 같은 유틸리티로 예외를 주려 해도 먹지 않는다. */
 @layer base {
   /* 한글은 word-break: keep-all 로 단어 중간에서 끊기지 않게 두었다. 그러면 긴
-     영문 주소나 띄어쓰기 없는 학교명이 상자를 뚫고 나간다. 그때만 끊어 준다. */
-  h1, h2, h3, h4, h5, h6, p, li, label, span, a { overflow-wrap: anywhere; }
+     영문 주소나 띄어쓰기 없는 학교명이 상자를 뚫고 나간다. 그때만 끊어 준다.
+
+     반드시 break-word 여야 한다. anywhere 는 요소의 최소 너비까지 0으로 만들어서,
+     flex-1 로 놓인 제목이 글자 하나 폭까지 쥐어짜인다. 320px 화면에서
+     "2026학년도 2학기 개학식"이 "2026 / 학년 / 도 / …"로 끊어졌다. */
+  h1, h2, h3, h4, h5, h6, p, li, label, span, a { overflow-wrap: break-word; }
 
   /* 아이폰의 input[type="date"]는 "2026. 8. 21."을 표시할 고유 폭을 끝까지 고집한다.
      flex·grid 칸의 기본값인 min-width: auto 가 그 고집을 그대로 통과시키기 때문에

@@ -45,8 +45,17 @@ export async function fetchLibraryTrack(
     throw new Error(`${track.label} 파일을 받지 못했습니다. 잠시 후 다시 시도해 주세요.`);
   }
 
-  const data = await response.arrayBuffer();
   const reported = response.headers?.get('content-type') ?? '';
+
+  // 파일이 없을 때 웹페이지를 대신 돌려주는 서버가 있다. 상태는 200이라
+  // ok만 믿으면 그 HTML을 음원이라며 기기에 저장하게 된다.
+  if (reported.startsWith('text/html')) {
+    throw new Error(
+      `${track.label} 파일이 아직 올라와 있지 않습니다. 직접 파일을 올려 주세요.`,
+    );
+  }
+
+  const data = await response.arrayBuffer();
   const mimeType = guessAudioMime(track.file, reported);
 
   // 목록의 durationSec은 사람이 손으로 적은 값이라 믿지 않고 파일에서 다시 잰다.

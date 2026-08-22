@@ -15,7 +15,9 @@ export default function PageHeader({ title, backTo, backLabel = '← 뒤로', ri
       {backTo !== undefined && (
         <Link to={backTo} className="shrink-0 text-accent">{backLabel}</Link>
       )}
-      <h1 className="min-w-0 flex-1 text-lg font-bold">{title}</h1>
+      {/* min-w-40 이 있어야 좁은 화면에서 오른쪽 내용이 아랫줄로 내려간다.
+          없으면 오른쪽이 자리를 먼저 차지하고 제목이 세로로 길게 접힌다. */}
+      <h1 className="min-w-40 flex-1 text-lg font-bold">{title}</h1>
       {right !== undefined && <div className="flex shrink-0 items-center gap-2">{right}</div>}
     </header>
   );

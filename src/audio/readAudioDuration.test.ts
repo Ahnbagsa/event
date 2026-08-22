@@ -100,3 +100,53 @@ describe('동영상', () => {
     );
   });
 });
+
+// 실제로 겪은 일이다. 브라우저가 성공도 실패도 알려주지 않고 잠자코 있는
+// 파일이 있었고, 화면이 "읽는 중…"에 영영 멈춰 빠져나갈 길이 없었다.
+describe('아무 대답도 없는 파일', () => {
+  const silent = () => ({
+    duration: 0,
+    onloadedmetadata: null as (() => void) | null,
+    onerror: null as (() => void) | null,
+    set src(_value: string) {
+      // 일부러 아무 일도 하지 않는다.
+    },
+  });
+
+  it('영영 기다리지 않고 실패로 끊는다', async () => {
+    vi.useFakeTimers();
+    try {
+      const promise = readAudioDuration(new ArrayBuffer(8), 'audio/mpeg', silent);
+      const settled = expect(promise).rejects.toThrow('음원 파일을 읽을 수 없습니다.');
+      await vi.advanceTimersByTimeAsync(20_000);
+      await settled;
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('제때 대답한 파일은 끊지 않는다', async () => {
+    vi.useFakeTimers();
+    try {
+      const create = () => {
+        const reader = {
+          duration: 0,
+          onloadedmetadata: null as (() => void) | null,
+          onerror: null as (() => void) | null,
+          set src(_value: string) {
+            setTimeout(() => {
+              reader.duration = 42;
+              reader.onloadedmetadata?.();
+            }, 50);
+          },
+        };
+        return reader;
+      };
+      const promise = readAudioDuration(new ArrayBuffer(8), 'audio/mpeg', create);
+      await vi.advanceTimersByTimeAsync(20_000);
+      await expect(promise).resolves.toBe(42);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});

@@ -101,3 +101,26 @@ describe('fetchLibraryTrack', () => {
     await expect(fetchLibraryTrack(track, d)).rejects.toThrow(/인터넷/);
   });
 });
+
+// 실제로 겪은 일이다. 파일이 없을 때 개발 서버가 404 대신 index.html을 200으로
+// 돌려줬다. ok만 믿으면 그 HTML을 음원이라며 기기에 저장하게 된다.
+describe('파일 대신 웹페이지가 오면', () => {
+  function htmlResponse(): Response {
+    return {
+      ok: true,
+      status: 200,
+      headers: { get: () => 'text/html' },
+      arrayBuffer: () => Promise.resolve(new ArrayBuffer(4096)),
+    } as unknown as Response;
+  }
+
+  it('저장하지 않고 한국어로 알린다', async () => {
+    const d = deps({ fetchFn: vi.fn().mockResolvedValue(htmlResponse()) });
+    await expect(fetchLibraryTrack(track, d)).rejects.toThrow(/올라와 있지 않습니다/);
+  });
+
+  it('무엇을 하면 되는지 알려 준다', async () => {
+    const d = deps({ fetchFn: vi.fn().mockResolvedValue(htmlResponse()) });
+    await expect(fetchLibraryTrack(track, d)).rejects.toThrow(/직접 파일을 올려/);
+  });
+});
