@@ -26,6 +26,10 @@ export type AudioAsset = {
   durationSec: number;
   fileName: string;
   addedAt: number;
+  /** 기기가 바뀌어도 같은 이름표(lib:… 또는 up:…). 예전 자료에는 없다. */
+  sourceId?: string;
+  /** 이 역할의 기본 음원인가. 예전 자료에는 없어 읽을 때 판정한다. */
+  isDefault?: boolean;
 };
 
 export type SegmentKind = 'speech' | 'audio' | 'timer' | 'address';
@@ -38,6 +42,8 @@ export type Segment = {
   kind: SegmentKind;
   script: string;
   audioRole: AudioRole | null;
+  /** 이 순서만 다른 음원을 쓸 때의 이름표. null이면 역할의 기본 음원. */
+  audioSourceId: string | null;
   autoPlay: boolean;
   fadeOutSec: number | null;
   timerSec: number | null;

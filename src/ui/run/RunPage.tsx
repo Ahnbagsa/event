@@ -7,6 +7,7 @@ import { clearRunState, getRunState, saveRunState } from '../../db/runStateRepo'
 import { usePlayer } from '../../audio/usePlayer';
 import { useWakeLock } from './useWakeLock';
 import { roleLabel } from '../../audio/roles';
+import { assetForSegment } from '../../audio/audioSource';
 import { formatDuration } from '../../lib/format';
 import type { AudioAsset, EventCeremony } from '../../types';
 
@@ -58,10 +59,12 @@ export default function RunPage() {
   const segment = event?.segments[run.index] ?? null;
   const nextSegment = event?.segments[run.index + 1] ?? null;
 
-  const asset = useMemo(() => {
-    if (segment === null || segment.audioRole === null) return null;
-    return assets.find((entry) => entry.role === segment.audioRole) ?? null;
-  }, [segment, assets]);
+  // 순서가 콕 집은 음원을 쓰되, 이 기기에 없으면 역할의 기본 음원으로 되돌아간다.
+  // 공유 링크로 옮겨 온 행사는 그 음원이 이쪽 기기에 없을 수 있다.
+  const asset = useMemo(
+    () => (segment === null ? null : assetForSegment(assets, segment)),
+    [segment, assets],
+  );
 
   const player = usePlayer(asset);
 

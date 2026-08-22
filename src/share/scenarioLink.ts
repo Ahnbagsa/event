@@ -31,6 +31,8 @@ type Extra = {
   f?: number;
   g?: string;
   n?: string;
+  /** 이 순서만 쓰는 음원의 이름표. 없으면 역할의 기본 음원을 쓴다. */
+  s?: string;
 };
 
 function packSegment(segment: Segment): unknown[] {
@@ -42,6 +44,7 @@ function packSegment(segment: Segment): unknown[] {
     extra.r = index === -1 ? segment.audioRole : index;
   }
   if (segment.autoPlay) extra.a = 1;
+  if (segment.audioSourceId !== null) extra.s = segment.audioSourceId;
   if (segment.timerSec !== null) extra.t = segment.timerSec;
   if (segment.manualDurationSec !== null) extra.m = segment.manualDurationSec;
   if (segment.fadeOutSec !== null) extra.f = segment.fadeOutSec;
@@ -105,6 +108,8 @@ function unpackSegment(row: unknown, order: number): Segment | null {
     kind: pickFromList(KINDS, row[1], 'speech'),
     script: pickString(row[2], ''),
     audioRole: unpackRole(extra.r),
+    // 예전 링크에는 이 열쇠가 없다. 그때는 역할의 기본 음원을 쓴다.
+    audioSourceId: typeof extra.s === 'string' ? extra.s : null,
     autoPlay: extra.a === 1,
     fadeOutSec: pickNumberOrNull(extra.f),
     timerSec: pickNumberOrNull(extra.t),

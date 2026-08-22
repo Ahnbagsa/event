@@ -7,7 +7,7 @@ import { estimateTotalSeconds } from '../../domain/timeEstimator';
 import { usePlayer } from '../../audio/usePlayer';
 import { roleLabel } from '../../audio/roles';
 import { formatDuration } from '../../lib/format';
-import type { AudioAsset, AudioRole, EventCeremony } from '../../types';
+import type { AudioAsset, EventCeremony } from '../../types';
 
 function CheckRow({
   testId,
@@ -50,10 +50,8 @@ export default function PreflightPage() {
       const [loadedEvent, loadedAssets] = await Promise.all([getEvent(eventId), listAudio()]);
       setEvent(loadedEvent);
       setAssets(loadedAssets);
-      if (loadedEvent !== null) {
-        const roles = new Set<AudioRole>(loadedAssets.map((asset) => asset.role));
-        setResult(checkReadiness(loadedEvent, roles));
-      }
+      // 순서마다 다른 음원을 쓸 수 있으므로 역할 목록이 아니라 음원 자체를 넘긴다.
+      if (loadedEvent !== null) setResult(checkReadiness(loadedEvent, loadedAssets));
     })();
   }, [eventId]);
 
@@ -67,10 +65,7 @@ export default function PreflightPage() {
     return <main className="p-8">행사를 불러오는 중입니다…</main>;
   }
 
-  const durations = new Map<AudioRole, number>(
-    assets.map((asset) => [asset.role, asset.durationSec]),
-  );
-  const totalSeconds = estimateTotalSeconds(event.segments, durations);
+  const totalSeconds = estimateTotalSeconds(event.segments, assets);
   const canStart = result.ok && soundConfirmed;
 
   async function handleSoundTest() {

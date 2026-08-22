@@ -39,6 +39,6 @@ export function insertSegment(
   atIndex: number,
 ): Segment[] {
   const next = [...segments];
-  next.splice(atIndex, 0, { ...seed, id: newId('seg'), order: atIndex });
+  next.splice(atIndex, 0, { audioSourceId: null, ...seed, id: newId('seg'), order: atIndex });
   return reindex(next);
 }

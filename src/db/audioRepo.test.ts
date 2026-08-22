@@ -32,12 +32,25 @@ describe('audioRepo', () => {
     expect(await getAudioByRole('schoolSong')).toBeNull();
   });
 
-  it('같은 역할을 다시 저장하면 하나만 남는다', async () => {
+  // 예전에는 같은 역할의 다른 음원을 지웠다. 그래서 개학식은 1절 졸업식은 1~4절처럼
+  // 행사마다 다르게 쓸 수 없었다. 이제 둘 다 갖고, 나중에 넣은 것이 기본이 된다.
+  it('같은 역할을 다시 저장해도 앞의 것을 지우지 않는다', async () => {
     await putAudio(makeAsset('a1', 'anthem'));
     await putAudio(makeAsset('a2', 'anthem'));
-    const all = await listAudio();
-    expect(all).toHaveLength(1);
-    expect(all[0].id).toBe('a2');
+    expect(await listAudio()).toHaveLength(2);
+  });
+
+  it('나중에 넣은 것이 그 역할의 기본이 된다', async () => {
+    await putAudio(makeAsset('a1', 'anthem'));
+    await putAudio(makeAsset('a2', 'anthem'));
+    expect((await getAudioByRole('anthem'))?.id).toBe('a2');
+  });
+
+  it('기본 표시는 한 역할에 하나뿐이다', async () => {
+    await putAudio(makeAsset('a1', 'anthem'));
+    await putAudio(makeAsset('a2', 'anthem'));
+    const marked = (await listAudio()).filter((a) => a.isDefault === true);
+    expect(marked.map((a) => a.id)).toEqual(['a2']);
   });
 
   it('삭제하면 목록에서 사라진다', async () => {

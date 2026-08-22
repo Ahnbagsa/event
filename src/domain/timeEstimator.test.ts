@@ -5,7 +5,14 @@ import {
   estimateSegmentSeconds,
   estimateTotalSeconds,
 } from './timeEstimator';
-import type { AudioRole, Segment } from '../types';
+import type { AudioAsset, Segment } from '../types';
+
+function anthemAsset(sourceId: string, durationSec: number, isDefault = false): AudioAsset {
+  return {
+    id: sourceId, role: 'anthem', label: sourceId, data: new ArrayBuffer(8),
+    mimeType: 'audio/mpeg', durationSec, fileName: 'a.mp3', addedAt: 1, sourceId, isDefault,
+  };
+}
 
 function seg(partial: Partial<Segment>): Segment {
   return {
@@ -16,6 +23,7 @@ function seg(partial: Partial<Segment>): Segment {
     kind: 'speech',
     script: '',
     audioRole: null,
+  audioSourceId: null,
     autoPlay: false,
     fadeOutSec: null,
     timerSec: null,
@@ -84,11 +92,11 @@ describe('estimateTotalSeconds', () => {
       seg({ id: 's1', kind: 'audio', audioRole: 'anthem' }),
       seg({ id: 's2', kind: 'address', manualDurationSec: 120 }),
     ];
-    const durations = new Map<AudioRole, number>([['anthem', 200]]);
-    expect(estimateTotalSeconds(segments, durations)).toBe(320);
+    const assets = [anthemAsset('lib:200초', 200, true)];
+    expect(estimateTotalSeconds(segments, assets)).toBe(320);
   });
 
   it('순서가 없으면 0초다', () => {
-    expect(estimateTotalSeconds([], new Map())).toBe(0);
+    expect(estimateTotalSeconds([], [])).toBe(0);
   });
 });

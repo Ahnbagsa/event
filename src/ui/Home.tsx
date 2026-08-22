@@ -9,17 +9,17 @@ import { deleteEvent, listEvents } from '../db/eventRepo';
 import { listAudio } from '../db/audioRepo';
 import { estimateTotalSeconds } from '../domain/timeEstimator';
 import { formatDuration } from '../lib/format';
-import type { AudioRole, EventCeremony } from '../types';
+import type { AudioAsset, EventCeremony } from '../types';
 
 export default function Home() {
   const [events, setEvents] = useState<EventCeremony[] | null>(null);
-  const [durations, setDurations] = useState<Map<AudioRole, number>>(new Map());
+  const [assets, setAssets] = useState<AudioAsset[]>([]);
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     const [loadedEvents, assets] = await Promise.all([listEvents(), listAudio()]);
     setEvents(loadedEvents);
-    setDurations(new Map(assets.map((asset) => [asset.role, asset.durationSec])));
+    setAssets(assets);
   }, []);
 
   useEffect(() => {
@@ -59,7 +59,7 @@ export default function Home() {
             <p className="font-medium">{event.title}</p>
             <p className="text-sm text-ink-soft">
               {event.date} · {event.place} · 순서 {event.segments.length}개 · 예상{' '}
-              {formatDuration(estimateTotalSeconds(event.segments, durations))}
+              {formatDuration(estimateTotalSeconds(event.segments, assets))}
             </p>
             <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
               <Link to={`/event/${event.id}/edit`} className="text-accent">편집</Link>

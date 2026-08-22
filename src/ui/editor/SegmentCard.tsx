@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import ScriptField from './ScriptField';
 import IconButton from '../kit/IconButton';
+import SegmentAudio from './SegmentAudio';
 import { STANDARD_ROLES, roleLabel } from '../../audio/roles';
 import { formatDuration } from '../../lib/format';
 import { estimateSegmentSeconds } from '../../domain/timeEstimator';
-import type { AudioRole, Segment } from '../../types';
+import type { AudioAsset, AudioRole, Segment } from '../../types';
+import type { LibraryTrack } from '../../media/library';
 
 type Props = {
   segment: Segment;
@@ -15,6 +17,9 @@ type Props = {
   onRemove: () => void;
   aiBusy: boolean;
   onRegenerate: () => void;
+  assets: AudioAsset[];
+  library: LibraryTrack[];
+  onAssetsChanged: () => void;
 };
 
 export default function SegmentCard({
@@ -26,6 +31,9 @@ export default function SegmentCard({
   onRemove,
   aiBusy,
   onRegenerate,
+  assets,
+  library,
+  onAssetsChanged,
 }: Props) {
   const [open, setOpen] = useState(false);
   const seconds = estimateSegmentSeconds(segment, audioDurationSec);
@@ -86,7 +94,11 @@ export default function SegmentCard({
               className="rounded-xl border border-line px-2 py-1"
               value={segment.audioRole ?? ''}
               onChange={(e) =>
-                onChange({ audioRole: e.target.value === '' ? null : (e.target.value as AudioRole) })
+                // 역할을 바꾸면 앞서 고른 음원은 남의 역할 것이 된다. 함께 비운다.
+                onChange({
+                  audioRole: e.target.value === '' ? null : (e.target.value as AudioRole),
+                  audioSourceId: null,
+                })
               }
             >
               <option value="">없음</option>
@@ -95,6 +107,14 @@ export default function SegmentCard({
               ))}
             </select>
           </div>
+
+          <SegmentAudio
+            segment={segment}
+            assets={assets}
+            library={library}
+            onChange={onChange}
+            onAssetsChanged={onAssetsChanged}
+          />
 
           {segment.kind === 'timer' && (
             <div>

@@ -1,6 +1,9 @@
 import type { Segment } from '../../types';
 
-export type SegmentSeed = Omit<Segment, 'id' | 'order'>;
+// 씨앗은 순서로 자랄 때 id·order를 받는다. audioSourceId도 그때 정해지므로
+// 씨앗 단계에서는 적지 않아도 된다(createEventFromSeeds가 null로 채운다).
+export type SegmentSeed = Omit<Segment, 'id' | 'order' | 'audioSourceId'> &
+  Partial<Pick<Segment, 'audioSourceId'>>;
 
 function seed(partial: Partial<SegmentSeed> & { name: string; kind: Segment['kind'] }): SegmentSeed {
   return {

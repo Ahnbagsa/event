@@ -8,17 +8,20 @@ import { insertSegment, moveSegment, removeSegment, updateSegment } from '../../
 import { STANDARD_EXTRA_SEEDS, blankSeed } from '../../domain/templates';
 import { estimateTotalSeconds } from '../../domain/timeEstimator';
 import { countBlanks } from '../../domain/blanks';
+import { assetForSegment } from '../../audio/audioSource';
 import { formatDuration } from '../../lib/format';
 import { generateScripts, regenerateOne } from '../../gemini/generateScripts';
 import { defaultDeps, GeminiError } from '../../gemini/client';
 import { getProfile } from '../../db/profileRepo';
 import { getSettings } from '../../db/settingsRepo';
-import type { AudioRole, EventCeremony, Segment } from '../../types';
+import type { AudioAsset, EventCeremony, Segment } from '../../types';
+import { loadLibrary, type LibraryTrack } from '../../media/library';
 
 export default function EditorPage() {
   const { eventId = '' } = useParams();
   const [event, setEvent] = useState<EventCeremony | null>(null);
-  const [durations, setDurations] = useState<Map<AudioRole, number>>(new Map());
+  const [assets, setAssets] = useState<AudioAsset[]>([]);
+  const [library, setLibrary] = useState<LibraryTrack[]>([]);
   const [saved, setSaved] = useState(false);
   const [showPalette, setShowPalette] = useState(false);
   const [aiBusy, setAiBusy] = useState(false);
@@ -28,11 +31,14 @@ export default function EditorPage() {
 
   useEffect(() => {
     void getEvent(eventId).then(setEvent);
-    void listAudio().then((assets) => {
-      setDurations(new Map(assets.map((asset) => [asset.role, asset.durationSec])));
-    });
+    void reloadAssets();
+    void loadLibrary().then(setLibrary);
     void getSettings().then((settings) => setHasApiKey(settings.geminiApiKey.trim() !== ''));
   }, [eventId]);
+
+  const reloadAssets = useCallback(async () => {
+    setAssets(await listAudio());
+  }, []);
 
   const setSegments = useCallback((segments: Segment[]) => {
     setSaved(false);
@@ -40,8 +46,8 @@ export default function EditorPage() {
   }, []);
 
   const totalSeconds = useMemo(
-    () => (event === null ? 0 : estimateTotalSeconds(event.segments, durations)),
-    [event, durations],
+    () => (event === null ? 0 : estimateTotalSeconds(event.segments, assets)),
+    [event, assets],
   );
 
   if (event === null) {
@@ -149,10 +155,11 @@ export default function EditorPage() {
           <SegmentCard
             key={segment.id}
             segment={segment}
-            audioDurationSec={
-              segment.audioRole === null ? null : durations.get(segment.audioRole) ?? null
-            }
-            audioMissing={segment.audioRole !== null && !durations.has(segment.audioRole)}
+            audioDurationSec={assetForSegment(assets, segment)?.durationSec ?? null}
+            audioMissing={segment.audioRole !== null && assetForSegment(assets, segment) === null}
+            assets={assets}
+            library={library}
+            onAssetsChanged={() => void reloadAssets()}
             onChange={(patch) => setSegments(updateSegment(event.segments, segment.id, patch))}
             onMove={(delta) => setSegments(moveSegment(event.segments, segment.id, delta))}
             onRemove={() => setSegments(removeSegment(event.segments, segment.id))}

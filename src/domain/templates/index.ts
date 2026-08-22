@@ -50,6 +50,7 @@ export function createEventFromSeeds(seeds: SegmentSeed[], init: EventInit): Eve
     tone: init.tone,
     targetMinutes: init.targetMinutes,
     segments: seeds.map((seedValue, index) => ({
+      audioSourceId: null,
       ...seedValue,
       id: newId('seg'),
       order: index,

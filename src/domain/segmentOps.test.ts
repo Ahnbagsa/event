@@ -11,6 +11,7 @@ function seg(id: string, name: string, order: number): Segment {
     kind: 'speech',
     script: '',
     audioRole: null,
+  audioSourceId: null,
     autoPlay: false,
     fadeOutSec: null,
     timerSec: null,

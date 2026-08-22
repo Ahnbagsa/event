@@ -1,8 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { clearDb } from '../../db/testUtils';
-import { getAudioByRole, listAudio } from '../../db/audioRepo';
+import { addAudio, getAudioByRole, listAudio } from '../../db/audioRepo';
+import { putEvent } from '../../db/eventRepo';
+import { createEventFromTemplate } from '../../domain/templates';
+import type { AudioAsset } from '../../types';
 import AudioDrawer from './AudioDrawer';
 
 const readDurationMock = vi.hoisted(() => vi.fn(() => Promise.resolve(222)));
@@ -43,7 +46,8 @@ describe('AudioDrawer', () => {
       expect(saved?.durationSec).toBe(222);
     });
 
-    expect(await screen.findByText('3분 42초')).toBeInTheDocument();
+    // 역할당 여러 개를 보여주게 되면서 길이가 이름 뒤에 이어 붙는다.
+    expect(await screen.findByTestId('slot-anthem')).toHaveTextContent('3분 42초');
   });
 
   it('파일을 읽는 동안에는 다른 파일을 고를 수 없다', async () => {
@@ -97,6 +101,83 @@ describe('AudioDrawer', () => {
       const saved = await listAudio();
       expect(saved).toHaveLength(1);
       expect(saved[0].mimeType).toBe('audio/mpeg');
+    });
+  });
+});
+
+// 역할당 여러 개를 갖게 되면서 서랍이 할 일이 늘었다.
+describe('역할당 여러 개일 때', () => {
+  function anthem(id: string, label: string, sourceId: string): AudioAsset {
+    return {
+      id, role: 'anthem', label, data: new ArrayBuffer(8), mimeType: 'audio/mpeg',
+      durationSec: 69, fileName: label + '.mp3', addedAt: 1, sourceId,
+    };
+  }
+
+  beforeEach(async () => {
+    await clearDb();
+    await addAudio(anthem('a1', '1절', 'lib:v1'));
+    await addAudio({ ...anthem('a2', '1~4절', 'lib:v1-4'), isDefault: true });
+  });
+
+  it('받아 둔 것을 모두 보여 준다', async () => {
+    render(<AudioDrawer />);
+    expect(await screen.findByTestId('asset-a1')).toHaveTextContent('1절');
+    expect(await screen.findByTestId('asset-a2')).toHaveTextContent('1~4절');
+  });
+
+  it('어느 것이 기본인지 표시한다', async () => {
+    render(<AudioDrawer />);
+    expect(await screen.findByTestId('asset-a2')).toHaveTextContent('기본');
+    expect(screen.getByTestId('asset-a1')).not.toHaveTextContent('기본으로 삼');
+  });
+
+  // 자리를 차지하는데 아무도 안 쓰면 지울 수 있게 알려 줘야 한다.
+  it('어떤 행사도 안 쓰는 음원을 알려 준다', async () => {
+    render(<AudioDrawer />);
+    expect(await screen.findByTestId('asset-a1')).toHaveTextContent('안 쓰는 음원');
+  });
+
+  it('기본 음원은 안 쓰는 음원으로 몰지 않는다', async () => {
+    render(<AudioDrawer />);
+    expect(await screen.findByTestId('asset-a2')).not.toHaveTextContent('안 쓰는 음원');
+  });
+
+  it('행사가 쓰고 있으면 안 쓰는 음원이 아니다', async () => {
+    const event = createEventFromTemplate('semester-opening', {
+      title: '개학식', date: '2026-08-22', place: '강당', mode: 'inPerson',
+      audience: 'all', tone: 'formal', targetMinutes: null,
+    });
+    for (const s of event.segments) {
+      if (s.audioRole === 'anthem') s.audioSourceId = 'lib:v1';
+    }
+    await putEvent(event);
+
+    render(<AudioDrawer />);
+    expect(await screen.findByTestId('asset-a1')).not.toHaveTextContent('안 쓰는 음원');
+  });
+
+  it('기본으로를 누르면 기본이 옮겨간다', async () => {
+    const user = userEvent.setup();
+    render(<AudioDrawer />);
+
+    const row = await screen.findByTestId('asset-a1');
+    await user.click(within(row).getByRole('button', { name: '기본으로' }));
+
+    await waitFor(async () => {
+      expect((await getAudioByRole('anthem'))?.id).toBe('a1');
+    });
+  });
+
+  it('삭제하면 그 음원만 사라진다', async () => {
+    const user = userEvent.setup();
+    render(<AudioDrawer />);
+
+    const row = await screen.findByTestId('asset-a1');
+    await user.click(within(row).getByRole('button', { name: '삭제' }));
+
+    await waitFor(async () => {
+      expect((await listAudio()).map((a) => a.id)).toEqual(['a2']);
     });
   });
 });

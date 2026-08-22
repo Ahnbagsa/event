@@ -3,9 +3,11 @@ import LibraryPicker from './LibraryPicker';
 import { STANDARD_ROLES } from '../../audio/roles';
 import { readAudioDuration } from '../../audio/readAudioDuration';
 import { guessAudioMime } from '../../audio/mimeFromName';
-import { deleteAudio, listAudio, putAudio } from '../../db/audioRepo';
+import { deleteAudio, listAudio, putAudio, setDefaultAudio } from '../../db/audioRepo';
 import { loadLibrary, tracksForRole, type LibraryTrack } from '../../media/library';
 import { MEDIA_ACCEPT, isVideo } from '../../media/mediaKind';
+import { defaultAssetForRole, sourceIdOf, uploadSourceId, usedSourceIds } from '../../audio/audioSource';
+import { listEvents } from '../../db/eventRepo';
 import { defaultFetchTrackDeps, fetchLibraryTrack } from '../../media/fetchLibraryTrack';
 import { newId } from '../../lib/id';
 import { formatDuration } from '../../lib/format';
@@ -17,9 +19,13 @@ export default function AudioDrawer() {
   const [busyRole, setBusyRole] = useState<AudioRole | null>(null);
   const [library, setLibrary] = useState<LibraryTrack[]>([]);
   const [busyTrackId, setBusyTrackId] = useState<string | null>(null);
+  // 어떤 행사가 콕 집어 쓰는 음원. 아무도 안 쓰는 것을 알려 지우기 쉽게 한다.
+  const [used, setUsed] = useState<Set<string>>(new Set());
 
   const reload = useCallback(async () => {
-    setAssets(await listAudio());
+    const [loadedAssets, events] = await Promise.all([listAudio(), listEvents()]);
+    setAssets(loadedAssets);
+    setUsed(usedSourceIds(events));
   }, []);
 
   useEffect(() => {
@@ -54,10 +60,13 @@ export default function AudioDrawer() {
       const data = await file.arrayBuffer();
       const mimeType = guessAudioMime(file.name, file.type);
       const durationSec = await readAudioDuration(data, mimeType);
+      const id = newId('audio');
       await putAudio({
-        id: newId('audio'),
+        id,
         role,
         label: file.name,
+        // 이름표를 붙여 둬야 이 파일도 순서에서 콕 집어 고를 수 있다.
+        sourceId: uploadSourceId(id),
         data,
         mimeType,
         durationSec,
@@ -73,6 +82,11 @@ export default function AudioDrawer() {
     } finally {
       setBusyRole(null);
     }
+  }
+
+  async function handleMakeDefault(role: AudioRole, id: string) {
+    await setDefaultAudio(role, id);
+    await reload();
   }
 
   async function handleDelete(id: string) {
@@ -92,7 +106,8 @@ export default function AudioDrawer() {
 
       <ul className="space-y-2">
         {STANDARD_ROLES.map(({ role, label, hint }) => {
-          const asset = assets.find((entry) => entry.role === role) ?? null;
+          const mine = assets.filter((entry) => entry.role === role);
+          const defaultAsset = defaultAssetForRole(assets, role);
           return (
             <li key={role} data-testid={`slot-${role}`}
                 className="rounded-xl border border-line p-3">
@@ -101,16 +116,44 @@ export default function AudioDrawer() {
                 <span className="text-sm text-ink-soft">{hint}</span>
               </div>
 
-              <div className="mt-2 text-sm">
-                {asset === null ? (
-                  <span className="text-ink-soft">없음</span>
-                ) : (
-                  <span>
-                    {isVideo(asset.mimeType) ? '🎬 동영상 · ' : ''}
-                    {asset.fileName} · <span>{formatDuration(asset.durationSec)}</span>
-                  </span>
-                )}
-              </div>
+              {/* 역할당 여러 개를 가질 수 있다. 받아 둔 것을 모두 보여야
+                  무엇이 자리를 차지하는지 알고 지울 수 있다. */}
+              <ul className="mt-2 space-y-1 text-sm">
+                {mine.length === 0 && <li className="text-ink-soft">없음</li>}
+                {mine.map((entry) => {
+                  const sourceId = sourceIdOf(entry);
+                  const isDefault = defaultAsset !== null && defaultAsset.id === entry.id;
+                  const unused = !isDefault && !used.has(sourceId);
+                  return (
+                    <li key={entry.id} data-testid={`asset-${entry.id}`}
+                        className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                      <span className="min-w-0 flex-1">
+                        {isVideo(entry.mimeType) ? '🎬 ' : ''}
+                        {entry.label}
+                        <span className="text-ink-soft"> · {formatDuration(entry.durationSec)}</span>
+                      </span>
+                      {isDefault && (
+                        <span className="rounded-xl bg-accent-soft px-2 text-xs">기본</span>
+                      )}
+                      {unused && (
+                        <span className="rounded-xl bg-warn-soft px-2 text-xs text-warn">
+                          안 쓰는 음원
+                        </span>
+                      )}
+                      {!isDefault && (
+                        <button className="min-h-11 px-2 text-accent"
+                                onClick={() => void handleMakeDefault(role, entry.id)}>
+                          기본으로
+                        </button>
+                      )}
+                      <button className="min-h-11 px-2 text-danger"
+                              onClick={() => void handleDelete(entry.id)}>
+                        삭제
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
 
               <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2">
                 <input
@@ -126,12 +169,6 @@ export default function AudioDrawer() {
                   }}
                 />
                 {busyRole === role && <span className="text-sm">읽는 중…</span>}
-                {asset !== null && (
-                  <button className="text-sm text-danger"
-                          onClick={() => void handleDelete(asset.id)}>
-                    삭제
-                  </button>
-                )}
               </div>
 
               <LibraryPicker
