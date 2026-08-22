@@ -54,4 +54,10 @@ describe('public/audio/library.json', () => {
   it('교가는 학교마다 다르므로 공용 목록에 없다', () => {
     expect(parsed.filter((track) => track.role === 'schoolSong')).toEqual([]);
   });
+
+  // 이 폴더의 파일은 누구나 받을 수 있게 공개된다. 어디서 온 음원인지 적어 두지 않으면
+  // 나중에 아무도 확인할 수 없다. 출처가 빈 채로 새 음원이 들어오는 것을 막는다.
+  it('모든 음원에 출처가 적혀 있다', () => {
+    expect(parsed.filter((track) => track.credit.trim() === '').map((t) => t.id)).toEqual([]);
+  });
 });

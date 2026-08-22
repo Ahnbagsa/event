@@ -6,6 +6,7 @@
       "role": "pledge",
       "label": "맹세문 없음",
       "file": "14-1-pledge-none.mp3",
+      "credit": "행정안전부",
       "note": "음악만 나옵니다. 맹세문은 직접 낭독합니다",
       "durationSec": 45
     },
@@ -14,6 +15,7 @@
       "role": "pledge",
       "label": "맹세문 · 성인 남자",
       "file": "14-2-pledge-man.mp3",
+      "credit": "행정안전부",
       "durationSec": 45
     },
     {
@@ -21,6 +23,7 @@
       "role": "pledge",
       "label": "맹세문 · 성인 여자",
       "file": "14-3-pledge-woman.mp3",
+      "credit": "행정안전부",
       "durationSec": 45
     },
     {
@@ -28,6 +31,7 @@
       "role": "pledge",
       "label": "맹세문 · 남자 어린이",
       "file": "14-4-pledge-boy.mp3",
+      "credit": "행정안전부",
       "durationSec": 45
     },
     {
@@ -35,6 +39,7 @@
       "role": "pledge",
       "label": "맹세문 · 여자 어린이",
       "file": "14-5-pledge-girl.mp3",
+      "credit": "행정안전부",
       "durationSec": 45
     },
     {
@@ -42,6 +47,7 @@
       "role": "pledge",
       "label": "맹세문 · 남녀 어린이",
       "file": "14-6-pledge-children.mp3",
+      "credit": "행정안전부",
       "durationSec": 45
     },
     {
@@ -49,6 +55,7 @@
       "role": "pledge",
       "label": "무전주 애국가",
       "file": "14-7-pledge-anthem-noprelude.mp3",
+      "credit": "행정안전부",
       "note": "전주 없이 바로 시작합니다",
       "durationSec": 63
     },
@@ -57,6 +64,7 @@
       "role": "pledge",
       "label": "국악 · 맹세문 없음",
       "file": "15-1-pledge-gugak-none.mp3",
+      "credit": "행정안전부",
       "note": "음악만 나옵니다. 맹세문은 직접 낭독합니다",
       "durationSec": 47
     },
@@ -65,6 +73,7 @@
       "role": "pledge",
       "label": "국악 · 맹세문 · 성인 남자",
       "file": "15-2-pledge-gugak-man.mp3",
+      "credit": "행정안전부",
       "durationSec": 47
     },
     {
@@ -72,6 +81,7 @@
       "role": "pledge",
       "label": "국악 · 맹세문 · 성인 여자",
       "file": "15-3-pledge-gugak-woman.mp3",
+      "credit": "행정안전부",
       "durationSec": 47
     },
     {
@@ -79,6 +89,7 @@
       "role": "pledge",
       "label": "국악 · 맹세문 · 남자 어린이",
       "file": "15-4-pledge-gugak-boy.mp3",
+      "credit": "행정안전부",
       "durationSec": 47
     },
     {
@@ -86,6 +97,7 @@
       "role": "pledge",
       "label": "국악 · 맹세문 · 여자 어린이",
       "file": "15-5-pledge-gugak-girl.mp3",
+      "credit": "행정안전부",
       "durationSec": 47
     },
     {
@@ -93,6 +105,7 @@
       "role": "pledge",
       "label": "국악 · 맹세문 · 남녀 어린이",
       "file": "15-6-pledge-gugak-children.mp3",
+      "credit": "행정안전부",
       "durationSec": 47
     },
     {
@@ -100,6 +113,7 @@
       "role": "pledge",
       "label": "국악 · 무전주 애국가",
       "file": "15-7-pledge-gugak-anthem-noprelude.mp3",
+      "credit": "행정안전부",
       "note": "전주 없이 바로 시작합니다",
       "durationSec": 55
     },
@@ -108,6 +122,7 @@
       "role": "anthem",
       "label": "국악 · 1절",
       "file": "17-1-anthem-gugak-verse1.mp3",
+      "credit": "행정안전부",
       "durationSec": 68
     },
     {
@@ -115,6 +130,7 @@
       "role": "anthem",
       "label": "1절",
       "file": "17-2-anthem-verse1.mp3",
+      "credit": "행정안전부",
       "note": "가장 많이 쓰는 판본입니다",
       "durationSec": 69
     },
@@ -123,6 +139,7 @@
       "role": "anthem",
       "label": "국악 · 1~4절",
       "file": "17-2-anthem-gugak-verse1-4.mp3",
+      "credit": "행정안전부",
       "durationSec": 218
     },
     {
@@ -130,6 +147,7 @@
       "role": "anthem",
       "label": "1~4절",
       "file": "17-2-anthem-verse1-4.mp3",
+      "credit": "행정안전부",
       "durationSec": 239
     },
     {
@@ -137,6 +155,7 @@
       "role": "silence",
       "label": "묵념곡",
       "file": "18-silence.mp3",
+      "credit": "행정안전부",
       "durationSec": 74
     },
     {
@@ -144,6 +163,7 @@
       "role": "silence",
       "label": "국악 · 묵념곡",
       "file": "19-silence-gugak.mp3",
+      "credit": "행정안전부",
       "durationSec": 60
     }
   ]
