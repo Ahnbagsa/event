@@ -39,3 +39,38 @@ describe('guessAudioMime', () => {
     expect(guessAudioMime('교가.m4a', 'video/mp4')).toBe('audio/mp4');
   });
 });
+
+// 실제로 겪은 일이다. GitHub Pages는 mp3를 audio/mpeg가 아니라 audio/mp3로 알려준다.
+// 개발 서버는 audio/mpeg를 줘서 배포 전까지 드러나지 않았다. 비표준 이름을 그대로
+// 저장해 두면 나중에 그 이름으로 Blob을 만들게 되고, 브라우저에 따라 받아주지 않는다.
+describe('서버가 비표준 이름으로 알려줄 때', () => {
+  it.each([
+    ['audio/mp3', 'audio/mpeg'],
+    ['audio/mpeg3', 'audio/mpeg'],
+    ['audio/x-mp3', 'audio/mpeg'],
+    ['audio/x-mpeg', 'audio/mpeg'],
+    ['audio/x-m4a', 'audio/mp4'],
+    ['audio/wave', 'audio/wav'],
+    ['audio/x-wav', 'audio/wav'],
+    ['audio/x-flac', 'audio/flac'],
+  ])('%s 를 %s 로 바로잡는다', (reported, expected) => {
+    expect(guessAudioMime('a.mp3', reported)).toBe(expected);
+  });
+
+  it('대문자로 와도 바로잡는다', () => {
+    expect(guessAudioMime('a.mp3', 'AUDIO/MP3')).toBe('audio/mpeg');
+  });
+
+  it('뒤에 붙은 부가 정보를 떼어낸다', () => {
+    expect(guessAudioMime('a.mp3', 'audio/mp3; charset=binary')).toBe('audio/mpeg');
+  });
+
+  it('표준 이름은 그대로 둔다', () => {
+    expect(guessAudioMime('a.mp3', 'audio/mpeg')).toBe('audio/mpeg');
+    expect(guessAudioMime('a.ogg', 'audio/ogg')).toBe('audio/ogg');
+  });
+
+  it('별칭을 바로잡아도 m4a는 여전히 음원이다', () => {
+    expect(guessAudioMime('교가.m4a', 'video/mp4')).toBe('audio/mp4');
+  });
+});
