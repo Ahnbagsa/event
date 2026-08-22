@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import ScriptField from './ScriptField';
+import IconButton from '../kit/IconButton';
 import { STANDARD_ROLES, roleLabel } from '../../audio/roles';
 import { formatDuration } from '../../lib/format';
 import { estimateSegmentSeconds } from '../../domain/timeEstimator';
@@ -31,20 +32,16 @@ export default function SegmentCard({
 
   return (
     <li data-testid={`card-${segment.id}`} className="rounded-xl border border-line p-3">
-      <div className="flex items-center gap-2">
+      {/* 제목 줄과 조작 줄을 나눈다. 한 줄에 일곱 개를 넣으면 오른쪽 여섯이 폭을
+          먼저 가져가고 제목만 짓눌려 두세 줄로 접힌다. 제목이 전체 폭을 쓰면
+          "순국선열 및 호국영령에 대한 묵념" 정도는 한 줄에 들어간다. */}
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
         {segment.groupLabel !== null && (
           <span className="rounded-xl bg-accent-soft px-2 py-0.5 text-xs">{segment.groupLabel}</span>
         )}
-        <span data-testid="segment-name" className="flex-1 font-medium">
+        <span data-testid="segment-name" className="min-w-0 flex-1 font-medium">
           {segment.name}
         </span>
-        <span className="text-sm text-ink-soft">{formatDuration(seconds)}</span>
-        <button className="px-2" aria-label="위로" onClick={() => onMove(-1)}>▲</button>
-        <button className="px-2" aria-label="아래로" onClick={() => onMove(1)}>▼</button>
-        <button className="px-2 text-danger" onClick={onRemove}>삭제</button>
-        <button className="px-2 text-accent" onClick={() => setOpen(!open)}>
-          {open ? '접기' : '펼치기'}
-        </button>
       </div>
 
       {segment.audioRole !== null && (
@@ -53,6 +50,16 @@ export default function SegmentCard({
           {audioMissing && <span className="ml-2 text-danger">⚠ 이 기기에 음원이 없습니다</span>}
         </p>
       )}
+
+      <div className="mt-1 flex flex-wrap items-center gap-1">
+        <span className="mr-auto text-sm text-ink-soft">{formatDuration(seconds)}</span>
+        <IconButton aria-label="위로" onClick={() => onMove(-1)}>▲</IconButton>
+        <IconButton aria-label="아래로" onClick={() => onMove(1)}>▼</IconButton>
+        <IconButton tone="danger" onClick={onRemove}>삭제</IconButton>
+        <IconButton tone="accent" onClick={() => setOpen(!open)}>
+          {open ? '접기' : '펼치기'}
+        </IconButton>
+      </div>
 
       {open && (
         <div className="mt-3 space-y-3">

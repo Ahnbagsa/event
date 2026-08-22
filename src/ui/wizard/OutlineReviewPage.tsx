@@ -104,12 +104,14 @@ export default function OutlineReviewPage() {
       )}
 
       <ul className="space-y-2">
+        {/* 좁은 폰에서는 종류와 삭제가 아랫줄로 흐른다. 한 줄에 넷을 밀어 넣으면
+            순서명 칸이 짓눌려 글자가 몇 자 안 보인다. */}
         {seeds.map((seed, index) => (
           <li key={index} data-testid="outline-row"
-              className="flex items-center gap-2 rounded-xl border border-line p-2">
-            <span className="w-6 text-sm text-ink-soft">{index + 1}</span>
+              className="flex flex-wrap items-center gap-2 rounded-xl border border-line p-2">
+            <span className="w-6 shrink-0 text-sm text-ink-soft">{index + 1}</span>
             <input
-              className="flex-1 rounded-xl border border-line px-2 py-1"
+              className="min-w-40 flex-1 rounded-xl border border-line px-2 py-1"
               aria-label={`${index + 1}번 순서명`}
               value={seed.name}
               onChange={(e) => update(index, { name: e.target.value })}
@@ -145,13 +147,15 @@ export default function OutlineReviewPage() {
                onChange={(e) => setTitle(e.target.value)} />
       </div>
 
-      <div className="flex gap-2">
-        <div className="flex-1">
+      {/* 좁은 폰에서는 위아래로 쌓고 넓어지면 두 칸이 된다. flex + flex-1로 두면
+          아이폰의 날짜 입력칸이 장소칸 위로 올라타 테두리가 겹친다. */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="min-w-0">
           <label className="block text-sm font-medium" htmlFor="date">날짜</label>
           <input id="date" type="date" className={field} value={date}
                  onChange={(e) => setDate(e.target.value)} />
         </div>
-        <div className="flex-1">
+        <div className="min-w-0">
           <label className="block text-sm font-medium" htmlFor="place">장소</label>
           <input id="place" className={field} value={place}
                  onChange={(e) => setPlace(e.target.value)} />
@@ -172,8 +176,8 @@ export default function OutlineReviewPage() {
         </label>
       </fieldset>
 
-      <div className="flex gap-2">
-        <div className="flex-1">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="min-w-0">
           <label className="block text-sm font-medium" htmlFor="audience">대상</label>
           <select id="audience" className={field} value={audience}
                   onChange={(e) => setAudience(e.target.value as EventAudience)}>
@@ -183,7 +187,7 @@ export default function OutlineReviewPage() {
             <option value="withParents">학부모·내빈 참석</option>
           </select>
         </div>
-        <div className="flex-1">
+        <div className="min-w-0">
           <label className="block text-sm font-medium" htmlFor="tone">멘트 톤</label>
           <select id="tone" className={field} value={tone}
                   onChange={(e) => setTone(e.target.value as EventTone)}>

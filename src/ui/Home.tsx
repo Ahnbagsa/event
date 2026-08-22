@@ -59,7 +59,7 @@ export default function Home() {
               {event.date} · {event.place} · 순서 {event.segments.length}개 · 예상{' '}
               {formatDuration(estimateTotalSeconds(event.segments, durations))}
             </p>
-            <div className="mt-2 flex gap-3 text-sm">
+            <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
               <Link to={`/event/${event.id}/edit`} className="text-accent">편집</Link>
               <Link to={`/event/${event.id}/preflight`} className="text-accent">진행</Link>
               <ShareButton event={event} />

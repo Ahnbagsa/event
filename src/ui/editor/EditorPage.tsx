@@ -88,17 +88,21 @@ export default function EditorPage() {
 
   return (
     <main className="mx-auto max-w-2xl pb-16">
-      <header className="sticky top-0 z-10 space-y-1 border-b border-line bg-paper-raised p-3">
-        <div className="flex items-center gap-3">
-          <Link to="/" className="text-accent">← 홈</Link>
-          <h1 className="flex-1 truncate text-lg font-bold">{event.title}</h1>
-          <button className="rounded-xl bg-accent px-3 py-1 text-white"
-                  onClick={() => void handleSave()}>
-            저장
-          </button>
-          <ShareButton event={event} />
+      {/* 좁은 폰에서는 제목 아래로 버튼이 흐른다. 한 줄로 묶어 두면 긴 행사 제목이
+          몇 글자만 남고 잘린다. 버튼들은 한 덩어리로 묶어 따로 흩어지지 않게 한다. */}
+      <header className="sticky top-0 z-10 space-y-2 border-b border-line bg-paper-raised p-3">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <Link to="/" className="shrink-0 text-accent">← 홈</Link>
+          <h1 className="min-w-0 flex-1 text-lg font-bold">{event.title}</h1>
+          <div className="flex shrink-0 items-center gap-2">
+            <button className="min-h-11 rounded-xl bg-accent px-4 text-white"
+                    onClick={() => void handleSave()}>
+              저장
+            </button>
+            <ShareButton event={event} />
+          </div>
         </div>
-        <div className="flex items-center gap-3 text-sm">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
           <span data-testid="total-time">예상 {formatDuration(totalSeconds)}</span>
           {blankCount > 0 && (
             <span data-testid="blank-warning" className="rounded-xl bg-warn-soft px-2">
@@ -106,7 +110,7 @@ export default function EditorPage() {
             </span>
           )}
           {saved && <span className="text-ok">저장했습니다</span>}
-          <Link to={`/event/${event.id}/preflight`} className="ml-auto text-accent">
+          <Link to={`/event/${event.id}/preflight`} className="ml-auto shrink-0 text-accent">
             점검하러 가기 →
           </Link>
         </div>

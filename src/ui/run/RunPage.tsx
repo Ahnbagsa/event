@@ -241,7 +241,9 @@ export default function RunPage() {
         {nextSegment === null ? '마지막 순서입니다' : `다음 ▸ ${nextSegment.name}`}
       </p>
 
-      <div className="flex gap-3 p-3">
+      {/* pb-safe는 아이폰 아래쪽 홈 인디케이터 바를 피한다. 이게 없으면
+          행사 도중 '다음' 버튼 아래쪽이 바에 가려 잘 눌리지 않는다. */}
+      <div className="flex gap-3 p-3 pb-safe">
         <button
           className="flex-1 rounded-xl bg-white/10 py-4 text-lg disabled:opacity-40"
           disabled={run.index === 0}

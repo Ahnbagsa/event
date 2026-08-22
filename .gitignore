@@ -3,3 +3,7 @@ dist
 .DS_Store
 *.local
 .superpowers/
+.claude/
+# 사용자가 폴더에 떨어뜨리는 화면 사진. public/ 아래 앱 그림은 계속 추적한다.
+/*.png
+!/ahnbagsa.png

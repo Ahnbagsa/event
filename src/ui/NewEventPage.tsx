@@ -79,13 +79,15 @@ export default function NewEventPage() {
                placeholder="2026학년도 2학기 개학식" />
       </div>
 
-      <div className="flex gap-2">
-        <div className="flex-1">
+      {/* 좁은 폰에서는 위아래로 쌓고 넓어지면 두 칸이 된다. flex + flex-1로 두면
+          아이폰의 날짜 입력칸이 장소칸 위로 올라타 테두리가 겹친다. */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="min-w-0">
           <label className="block text-sm font-medium" htmlFor="date">날짜</label>
           <input id="date" type="date" className={field} value={date}
                  onChange={(e) => setDate(e.target.value)} />
         </div>
-        <div className="flex-1">
+        <div className="min-w-0">
           <label className="block text-sm font-medium" htmlFor="place">장소</label>
           <input id="place" className={field} value={place}
                  onChange={(e) => setPlace(e.target.value)} />
