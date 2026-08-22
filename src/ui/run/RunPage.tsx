@@ -215,24 +215,43 @@ export default function RunPage() {
       </section>
 
       {segment?.audioRole !== null && segment !== null && (
-        <div className="flex flex-wrap items-center gap-3 border-t border-white/20 p-3">
-          <span>🎵 {roleLabel(segment.audioRole!)}</span>
-          {asset === null ? (
-            <span className="text-danger-soft">이 기기에 음원이 없습니다</span>
-          ) : (
-            <>
-              <button className="rounded-xl bg-accent px-3 py-1"
-                      onClick={() => void player.play()}>재생</button>
-              <button className="rounded-xl border border-white/20 px-3 py-1"
-                      onClick={() => player.pause()}>일시정지</button>
-              <button className="rounded-xl border border-white/20 px-3 py-1"
-                      onClick={() => void player.restart()}>처음부터</button>
-              <button className="rounded-xl border border-white/20 px-3 py-1"
-                      onClick={() => void player.fadeOut(3)}>페이드아웃</button>
-              <span className="text-sm text-paper/70">
-                {formatDuration(player.currentTime)} / {formatDuration(player.duration)}
-              </span>
-            </>
+        <div className="border-t border-white/20 p-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <span>
+              {player.kind === 'video' ? '🎬' : '🎵'} {roleLabel(segment.audioRole!)}
+            </span>
+            {asset === null ? (
+              <span className="text-danger-soft">이 기기에 음원이 없습니다</span>
+            ) : (
+              <>
+                <button className="min-h-11 rounded-xl bg-accent px-3"
+                        onClick={() => void player.play()}>재생</button>
+                <button className="min-h-11 rounded-xl border border-white/20 px-3"
+                        onClick={() => player.pause()}>일시정지</button>
+                <button className="min-h-11 rounded-xl border border-white/20 px-3"
+                        onClick={() => void player.restart()}>처음부터</button>
+                <button className="min-h-11 rounded-xl border border-white/20 px-3"
+                        onClick={() => void player.fadeOut(3)}>페이드아웃</button>
+                {player.kind === 'video' && (
+                  <button className="min-h-11 rounded-xl border border-white/20 px-3"
+                          onClick={() => void player.enterFullscreen()}>크게 보기</button>
+                )}
+                <span className="text-sm text-paper/70">
+                  {formatDuration(player.currentTime)} / {formatDuration(player.duration)}
+                </span>
+              </>
+            )}
+          </div>
+
+          {/* 평소에는 대본이 주인공이라 영상을 작게 둔다. 빔프로젝터로 내보낼
+              때만 '크게 보기'로 영상만 화면을 채운다. 사회자가 폰으로 대본을
+              보며 진행하는 경우와 빔에 쓰는 경우를 한 벌로 덮는다. */}
+          {player.kind === 'video' && asset !== null && (
+            <div
+              data-testid="video-stage"
+              ref={player.mount}
+              className="mt-2 aspect-video w-40 overflow-hidden rounded-xl bg-stage"
+            />
           )}
         </div>
       )}

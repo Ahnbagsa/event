@@ -5,6 +5,7 @@ import { readAudioDuration } from '../../audio/readAudioDuration';
 import { guessAudioMime } from '../../audio/mimeFromName';
 import { deleteAudio, listAudio, putAudio } from '../../db/audioRepo';
 import { loadLibrary, tracksForRole, type LibraryTrack } from '../../media/library';
+import { MEDIA_ACCEPT, isVideo } from '../../media/mediaKind';
 import { defaultFetchTrackDeps, fetchLibraryTrack } from '../../media/fetchLibraryTrack';
 import { newId } from '../../lib/id';
 import { formatDuration } from '../../lib/format';
@@ -66,7 +67,7 @@ export default function AudioDrawer() {
       await reload();
     } catch {
       setError(
-        '음원 파일을 읽을 수 없습니다. mp3·m4a·wav 파일인지 확인해 주세요. ' +
+        '파일을 읽을 수 없습니다. mp3·m4a·wav 음원이나 mp4·mov 동영상인지 확인해 주세요. ' +
           '휴대폰이라면 카카오톡이나 다운로드 폴더에 받아 둔 파일을 골라 주세요.',
       );
     } finally {
@@ -84,6 +85,8 @@ export default function AudioDrawer() {
       <h2 className="text-xl font-bold">음원 서랍</h2>
       <p className="text-sm text-ink-soft">
         이 기기에 한 번만 등록해 두면 모든 행사에서 쓰입니다. 인터넷 없이도 재생됩니다.
+        음원과 동영상 둘 다 됩니다 — 동영상은 진행 화면에서 <b>크게 보기</b>로 빔프로젝터에
+        내보낼 수 있습니다. 다만 동영상은 자리를 많이 차지하니 꼭 필요한 것만 넣어 주세요.
       </p>
       {error !== '' && <p className="text-danger">{error}</p>}
 
@@ -103,6 +106,7 @@ export default function AudioDrawer() {
                   <span className="text-ink-soft">없음</span>
                 ) : (
                   <span>
+                    {isVideo(asset.mimeType) ? '🎬 동영상 · ' : ''}
                     {asset.fileName} · <span>{formatDuration(asset.durationSec)}</span>
                   </span>
                 )}
@@ -113,8 +117,8 @@ export default function AudioDrawer() {
                   data-testid={`file-${role}`}
                   aria-label={`${label} 파일 선택`}
                   type="file"
-                  accept="audio/*,.mp3,.m4a,.aac,.wav,.ogg,.oga,.flac,.opus"
-                  className="text-sm"
+                  accept={MEDIA_ACCEPT}
+                  className="min-w-0 flex-1 text-sm"
                   disabled={busyRole !== null}
                   onChange={(e) => {
                     const file = e.target.files?.[0];

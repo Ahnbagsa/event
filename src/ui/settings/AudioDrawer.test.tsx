@@ -75,7 +75,7 @@ describe('AudioDrawer', () => {
 
     expect(
       await screen.findByText(
-        '음원 파일을 읽을 수 없습니다. mp3·m4a·wav 파일인지 확인해 주세요. ' +
+        '파일을 읽을 수 없습니다. mp3·m4a·wav 음원이나 mp4·mov 동영상인지 확인해 주세요. ' +
           '휴대폰이라면 카카오톡이나 다운로드 폴더에 받아 둔 파일을 골라 주세요.',
       ),
     ).toBeInTheDocument();

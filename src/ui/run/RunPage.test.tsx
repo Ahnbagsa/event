@@ -13,13 +13,22 @@ import RunPage from './RunPage';
 
 const play = vi.fn(() => Promise.resolve());
 const pause = vi.fn();
+const enterFullscreen = vi.fn(() => Promise.resolve(true));
+const mountVideo = vi.fn();
+
+// 재생기가 음원을 다루는지 동영상을 다루는지에 따라 화면이 달라진다.
+// 테스트마다 바꿀 수 있게 밖에 둔다.
+const playing = { kind: 'audio' as 'audio' | 'video' };
 
 vi.mock('../../audio/usePlayer', () => ({
   usePlayer: () => ({
     status: 'ready',
+    kind: playing.kind,
     currentTime: 0,
     duration: 222,
     volume: 1,
+    mount: mountVideo,
+    enterFullscreen,
     play,
     pause,
     restart: () => Promise.resolve(),
@@ -90,6 +99,8 @@ describe('RunPage', () => {
     await clearDb();
     play.mockClear();
     pause.mockClear();
+    enterFullscreen.mockClear();
+    playing.kind = 'audio';
   });
 
   it('첫 순서의 멘트를 크게 보여준다', async () => {
@@ -135,6 +146,53 @@ describe('RunPage', () => {
     await user.click(await screen.findByRole('button', { name: '다음' }));
     await user.click(await screen.findByRole('button', { name: '재생' }));
     expect(play).toHaveBeenCalled();
+  });
+
+  // 평소에는 대본이 주인공이고 영상은 작게 있다가, 빔프로젝터로 내보낼 때만
+  // '크게 보기'로 화면을 채운다. 사회자 폰과 빔을 한 벌로 덮기 위한 것이다.
+  describe('동영상', () => {
+    async function goToMediaSegment() {
+      const user = userEvent.setup();
+      await renderRun();
+      await user.click(await screen.findByRole('button', { name: '다음' }));
+      return user;
+    }
+
+    it('음원이면 영상 자리를 만들지 않는다', async () => {
+      await goToMediaSegment();
+      expect(screen.queryByTestId('video-stage')).not.toBeInTheDocument();
+    });
+
+    it('음원이면 크게 보기가 없다', async () => {
+      await goToMediaSegment();
+      expect(screen.queryByRole('button', { name: '크게 보기' })).not.toBeInTheDocument();
+    });
+
+    it('동영상이면 영상 자리를 만든다', async () => {
+      playing.kind = 'video';
+      await goToMediaSegment();
+      expect(await screen.findByTestId('video-stage')).toBeInTheDocument();
+    });
+
+    it('동영상이면 크게 보기가 나온다', async () => {
+      playing.kind = 'video';
+      await goToMediaSegment();
+      expect(await screen.findByRole('button', { name: '크게 보기' })).toBeInTheDocument();
+    });
+
+    it('크게 보기를 누르면 전체화면으로 보낸다', async () => {
+      playing.kind = 'video';
+      const user = await goToMediaSegment();
+      await user.click(await screen.findByRole('button', { name: '크게 보기' }));
+      expect(enterFullscreen).toHaveBeenCalled();
+    });
+
+    it('동영상이어도 재생 조작은 그대로다', async () => {
+      playing.kind = 'video';
+      const user = await goToMediaSegment();
+      await user.click(await screen.findByRole('button', { name: '재생' }));
+      expect(play).toHaveBeenCalled();
+    });
   });
 
   it('잠금을 켜면 다음 버튼이 막힌다', async () => {
