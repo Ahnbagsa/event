@@ -75,7 +75,7 @@ export default function ImportPage() {
         ))}
       </ol>
 
-      <button className="w-full rounded-xl bg-accent px-4 py-3 text-white"
+      <button className="w-full rounded-full bg-accent font-semibold px-4 py-3 text-white"
               onClick={() => void handleImport()}>
         이 기기에 가져오기
       </button>

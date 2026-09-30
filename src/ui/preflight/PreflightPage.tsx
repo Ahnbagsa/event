@@ -187,7 +187,7 @@ export default function PreflightPage() {
       </p>
 
       <button
-        className="mt-4 w-full rounded-xl bg-accent px-4 py-3 text-lg text-white disabled:bg-line"
+        className="mt-4 w-full rounded-full bg-accent font-semibold px-4 py-3 text-lg text-white disabled:bg-line"
         disabled={!canStart}
         onClick={() => navigate(`/event/${event.id}/run`)}
       >

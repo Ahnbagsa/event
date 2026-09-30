@@ -130,7 +130,7 @@ export default function RunPage() {
         </p>
         <div className="flex gap-3">
           <button
-            className="rounded-xl bg-accent px-4 py-3 text-lg"
+            className="rounded-full bg-accent font-semibold px-4 py-3 text-lg"
             onClick={() => {
               dispatch({ type: 'jump', index: resumeIndex });
               setResumeIndex(null);
@@ -157,7 +157,7 @@ export default function RunPage() {
       <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-stage text-paper">
         <h1 className="text-3xl font-bold">행사가 끝났습니다</h1>
         <p>총 소요 시간 {formatDuration(elapsed)}</p>
-        <Link to="/" className="rounded-xl bg-accent px-4 py-2">홈으로</Link>
+        <Link to="/" className="rounded-full bg-accent font-semibold px-4 py-2">홈으로</Link>
       </main>
     );
   }
@@ -227,7 +227,7 @@ export default function RunPage() {
               <span className="text-danger-soft">이 기기에 음원이 없습니다</span>
             ) : (
               <>
-                <button className="min-h-11 rounded-xl bg-accent px-3"
+                <button className="min-h-11 rounded-full bg-accent font-semibold px-3"
                         onClick={() => void player.play()}>재생</button>
                 <button className="min-h-11 rounded-xl border border-white/20 px-3"
                         onClick={() => player.pause()}>일시정지</button>
@@ -273,7 +273,7 @@ export default function RunPage() {
         >
           이전
         </button>
-        <button className="flex-[2] rounded-xl bg-accent py-4 text-lg"
+        <button className="flex-[2] rounded-full bg-accent font-semibold py-4 text-lg"
                 onClick={() => go('next')}>
           다음
         </button>

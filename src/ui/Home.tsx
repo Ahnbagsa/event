@@ -36,15 +36,16 @@ export default function Home() {
     <main className="mx-auto max-w-2xl p-4">
       <header className="mb-4 flex items-center gap-3">
         <AnbaksaMark size={44} className="shrink-0 text-ink" />
-        <h1 className="flex-1 text-2xl font-bold">행사박사</h1>
-        <Link to="/settings" className="text-accent">설정</Link>
+        <h1 className="flex-1 text-2xl font-bold tracking-tight">행사<span className="text-grad">박사</span></h1>
+        <Link to="/settings"
+              className="rounded-full border border-white bg-white/75 px-4 py-1.5 text-sm font-medium text-accent shadow-soft hover:bg-accent-soft">설정</Link>
       </header>
 
       <Onboarding />
       <InstallHint />
 
       <Link to="/new"
-            className="mb-4 flex h-12 items-center justify-center rounded-full bg-accent px-4 text-center font-medium text-white hover:bg-accent-strong">
+            className="mb-4 flex h-12 items-center justify-center rounded-full bg-accent px-4 text-center font-semibold text-white">
         ＋ 새 행사 만들기
       </Link>
 

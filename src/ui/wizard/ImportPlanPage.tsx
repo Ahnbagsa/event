@@ -76,7 +76,7 @@ export default function ImportPlanPage() {
       {error !== '' && <p className="text-danger">{error}</p>}
 
       <button
-        className="w-full rounded-xl bg-accent px-4 py-3 text-white disabled:bg-line"
+        className="w-full rounded-full bg-accent font-semibold px-4 py-3 text-white disabled:bg-line"
         disabled={busy || (text.trim() === '' && files.length === 0)}
         onClick={() => void handleExtract()}
       >

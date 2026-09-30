@@ -141,7 +141,7 @@ export default function NewEventPage() {
 
       {error !== '' && <p className="text-danger">{error}</p>}
 
-      <button className="w-full rounded-xl bg-accent px-4 py-3 text-white"
+      <button className="w-full rounded-full bg-accent font-semibold px-4 py-3 text-white"
               onClick={() => void handleCreate()}>
         행사 만들기
       </button>

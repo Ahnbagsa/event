@@ -47,7 +47,7 @@ export default function ShareButton({ event }: { event: EventCeremony }) {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-ink/45 p-4">
           <div
             data-testid="share-panel"
-            className="max-h-full w-full max-w-sm overflow-y-auto rounded-2xl border border-line bg-paper-raised p-4 text-center text-sm"
+            className="max-h-full w-full max-w-sm overflow-y-auto rounded-3xl border border-white bg-paper-raised p-4 shadow-lift text-center text-sm"
           >
             {message !== '' && <p className="mb-2 text-ok">{message}</p>}
             {error !== '' && <p className="mb-2 text-danger">{error}</p>}

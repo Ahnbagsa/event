@@ -99,7 +99,7 @@ export default function Onboarding() {
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <Link
           to="/settings"
-          className="inline-flex min-h-11 items-center rounded-full bg-accent px-4 font-medium text-white hover:bg-accent-strong"
+          className="inline-flex min-h-11 items-center rounded-full bg-accent px-4 font-semibold text-white"
         >
           설정으로 가기
         </Link>

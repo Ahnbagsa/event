@@ -3,20 +3,28 @@
 /* Tailwind v4는 @theme의 --color-* 를 bg-*, text-*, border-* 유틸리티로 만들어 준다.
    화면에서는 여기 정의한 이름만 쓴다. 색을 바꿀 일이 생기면 이 파일만 고친다. */
 @theme {
-  --color-paper: #FDFBF6;
+  /* 파스텔 글래스 테마. 보라→하늘 그라데이션을 주조로 한다. */
+  --color-paper: #F3F2FB;
   --color-paper-raised: #FFFFFF;
-  --color-ink: #1B1917;
-  --color-ink-soft: #6B635C;
-  --color-line: #E7E0D5;
-  --color-accent: #C75B2A;
-  --color-accent-strong: #A8471E;
-  --color-accent-soft: #FCEDE4;
-  --color-ok: #2F6B4F;
+  --color-ink: #1F1D2E;
+  --color-ink-soft: #6E6A86;
+  --color-line: #E7E3F5;
+  --color-accent: #6B5CF6;
+  --color-accent-strong: #5A4AE8;
+  --color-accent-soft: #F0EDFF;
+  --color-ok: #1F7A5A;
   --color-warn: #B45309;
-  --color-warn-soft: #FDF3E3;
-  --color-danger: #B02A24;
-  --color-danger-soft: #FBEAE8;
-  --color-stage: #14110F;
+  --color-warn-soft: #FFF3D6;
+  --color-danger: #C7355F;
+  --color-danger-soft: #FFE6F1;
+  --color-stage: #16142A;
+
+  /* 테두리 대신 보랏빛이 도는 부드러운 그림자로 면을 띄운다. shadow-soft·shadow-lift·shadow-brand */
+  --shadow-soft: 0 2px 6px rgba(92, 80, 180, 0.05), 0 10px 30px rgba(92, 80, 180, 0.08);
+  --shadow-lift: 0 18px 44px rgba(92, 80, 180, 0.16);
+  --shadow-brand: 0 8px 20px rgba(107, 92, 246, 0.30);
+
+  --radius-card: 20px;
 
   /* 글자 크기도 같은 방식으로 --text-* 가 text-sm·text-lg 유틸리티가 된다.
      clamp(최소, 화면폭에 따라, 최대)라서 화면 코드를 한 글자도 고치지 않고
@@ -51,10 +59,49 @@
 html, body, #root { height: 100%; }
 body {
   margin: 0;
-  font-family: system-ui, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+  font-family: "Pretendard Variable", Pretendard, system-ui, "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
   word-break: keep-all;
-  background-color: var(--color-paper);
+  letter-spacing: -0.01em;
   color: var(--color-ink);
+  /* 연보라·하늘·분홍 빛이 번진 바탕. 스크롤해도 빛이 따라 움직이지 않게 고정한다. */
+  background:
+    radial-gradient(900px 500px at 8% -10%, #DDD0FF 0%, transparent 60%),
+    radial-gradient(800px 500px at 100% 0%, #CFE3FF 0%, transparent 55%),
+    radial-gradient(700px 500px at 60% 110%, #F9D9EE 0%, transparent 60%),
+    var(--color-paper);
+  background-attachment: fixed;
+}
+
+:root {
+  /* 주조 그라데이션. 주 버튼과 강조 글자가 함께 쓴다. */
+  --grad-brand: linear-gradient(120deg, #8B6CF6 0%, #6D6AF7 50%, #5AA2F8 100%);
+}
+
+/* 강조 글자. 제목 한 단어에 그라데이션을 입힌다. */
+@utility text-grad {
+  background-image: var(--grad-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+@layer components {
+  /* 주 버튼 색. 화면마다 bg-accent 로 칠해 둔 버튼을 한 곳에서 그라데이션 알약으로 바꾼다.
+     bg-accent 는 background-color 만 칠하므로, 그 위에 그라데이션 그림을 얹는다.
+     disabled:bg-line 은 색만 바꾸니 비활성일 때는 그림을 걷어 내야 회색이 보인다. */
+  .bg-accent {
+    background-image: var(--grad-brand);
+    box-shadow: var(--shadow-brand);
+    transition: filter 0.15s, box-shadow 0.15s;
+  }
+  .bg-accent:hover { filter: brightness(1.06); }
+  .bg-accent:disabled { background-image: none; box-shadow: none; filter: none; }
+
+  /* 반투명 유리. 머리줄·떠 있는 상자에 쓴다. */
+  .glass {
+    background-color: rgba(255, 255, 255, 0.66);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
+  }
 }
 
 /* 아래 두 규칙은 반드시 @layer base 안에 있어야 한다.
@@ -77,6 +124,19 @@ body {
     min-width: 0;
     max-width: 100%;
   }
+
+  /* 입력칸은 흰 바탕에 연보라 테두리, 초점이 오면 보라 고리를 두른다. */
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  select, textarea {
+    background-color: #FFFFFF;
+    border-color: var(--color-line);
+  }
+  input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 2px solid transparent;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 4px rgba(107, 92, 246, 0.15);
+  }
+  input[type="checkbox"], input[type="radio"], input[type="range"] { accent-color: var(--color-accent); }
 }
 
 /* 아이폰 아래쪽 홈 인디케이터 바에 버튼이 가리지 않게 한다.

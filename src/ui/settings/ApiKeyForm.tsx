@@ -118,7 +118,7 @@ export default function ApiKeyForm() {
       </div>
 
       <div className="flex gap-2">
-        <button className="rounded-xl bg-accent px-4 py-2 text-white disabled:bg-line"
+        <button className="rounded-full bg-accent font-semibold px-4 py-2 text-white disabled:bg-line"
                 disabled={busy || apiKey.trim() === ''}
                 onClick={() => void handleSaveAndDiscover()}>
           저장하고 모델 찾기

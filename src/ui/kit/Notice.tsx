@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 type Tone = 'info' | 'warn' | 'danger';
 
 const TONES: Record<Tone, string> = {
-  info: 'bg-accent-soft text-ink',
+  info: 'border border-white/90 bg-gradient-to-br from-accent-soft to-white text-ink shadow-soft',
   warn: 'bg-warn-soft text-warn',
   danger: 'bg-danger-soft text-danger',
 };
@@ -25,7 +25,7 @@ export default function Notice({
     <div
       data-tone={tone}
       data-testid={testId}
-      className={`rounded-2xl px-4 py-3 text-sm ${TONES[tone]} ${className}`}
+      className={`rounded-card px-4 py-3 text-sm ${TONES[tone]} ${className}`}
     >
       {children}
     </div>

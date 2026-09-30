@@ -85,7 +85,7 @@ export default function ProfileForm() {
       {error !== '' && <p className="text-danger">{error}</p>}
       {saved && <p className="text-ok">저장했습니다.</p>}
 
-      <button className="rounded-xl bg-accent px-4 py-2 text-white"
+      <button className="rounded-full bg-accent font-semibold px-4 py-2 text-white"
               onClick={() => void handleSave()}>
         저장
       </button>

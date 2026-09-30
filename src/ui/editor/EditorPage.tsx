@@ -100,14 +100,14 @@ export default function EditorPage() {
     <main className="mx-auto max-w-2xl pb-16">
       {/* 좁은 폰에서는 제목 아래로 버튼이 흐른다. 한 줄로 묶어 두면 긴 행사 제목이
           몇 글자만 남고 잘린다. 버튼들은 한 덩어리로 묶어 따로 흩어지지 않게 한다. */}
-      <header className="sticky top-0 z-10 space-y-2 border-b border-line bg-paper-raised p-3">
+      <header className="glass sticky top-0 z-10 space-y-2 border-b border-white/80 p-3 shadow-soft">
         <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
           <Link to="/" className="shrink-0 text-accent">← 홈</Link>
           {/* min-w-40 이 있어야 좁은 화면에서 버튼 덩어리가 아랫줄로 내려간다.
               없으면 버튼이 자리를 먼저 차지하고 제목이 세로로 길게 접힌다. */}
           <h1 className="min-w-40 flex-1 text-lg font-bold">{event.title}</h1>
           <div className="flex shrink-0 items-center gap-2">
-            <button className="min-h-11 rounded-xl bg-accent px-4 text-white"
+            <button className="min-h-11 rounded-full bg-accent font-semibold px-4 text-white"
                     onClick={() => void handleSave()}>
               저장
             </button>
@@ -131,7 +131,7 @@ export default function EditorPage() {
       <div className="border-b border-line p-3">
         <div className="flex flex-wrap items-center gap-3">
           <button
-            className="min-h-11 rounded-xl bg-accent px-4 text-white disabled:bg-line disabled:text-ink-soft"
+            className="min-h-11 rounded-full bg-accent font-semibold px-4 text-white disabled:bg-line disabled:text-ink-soft"
             disabled={aiBusy || hasApiKey === false}
             onClick={() => void handleGenerateAll()}
           >
